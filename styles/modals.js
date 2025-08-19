@@ -1,5 +1,5 @@
 // =====================================
-// src/styles/modals.js
+// styles/modals.js - UPDATED WITH NEW STYLES
 // =====================================
 import { StyleSheet } from 'react-native';
 
@@ -48,6 +48,134 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#fff',
   },
+  
+  // Frequency Selection Styles
+  frequencyContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  frequencyButton: {
+    flex: 1,
+    minWidth: '45%',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  frequencyButtonActive: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  frequencyButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  frequencyButtonTextActive: {
+    color: '#fff',
+  },
+  
+  // Recommendation Styles
+  recommendedSection: {
+    marginBottom: 20,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  recommendedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  recommendedTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e40af',
+  },
+  recommendedItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#93c5fd',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  recommendedItemLeft: {
+    flex: 1,
+  },
+  recommendedItemName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  recommendedItemDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  recommendedItemAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#10b981',
+  },
+  recommendedReason: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontStyle: 'italic',
+  },
+  recommendedItemRight: {
+    alignItems: 'center',
+  },
+  scoreIndicator: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  scoreText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  frequencyBadge: {
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  frequencyBadgeText: {
+    fontSize: 11,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  
+  // Regular Savings Styles (updated)
+  savingOptionLeft: {
+    flex: 1,
+  },
+  savingOptionFrequency: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  
   errorContainer: {
     backgroundColor: '#fef2f2',
     borderWidth: 1,
@@ -65,7 +193,8 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    marginTop: 'auto',
+    marginTop: 20,
+    marginBottom: 40,
   },
   saveButtonText: {
     color: '#fff',
@@ -134,6 +263,11 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#10b981',
     fontWeight: '500',
+  },
+  savingItemFrequency: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
   },
   savingItemActions: {
     flexDirection: 'row',

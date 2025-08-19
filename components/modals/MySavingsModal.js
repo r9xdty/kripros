@@ -1,7 +1,7 @@
 // =====================================
-// src/components/modals/MySavingsModal.js
+// components/modals/MySavingsModal.js - UPDATED WITH FREQUENCY
 // =====================================
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   SafeAreaView,
@@ -10,9 +10,11 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  Alert
+  Alert,
+  ScrollView
 } from 'react-native';
 import Icon from '../common/Icon';
+import { FREQUENCY_TYPES, FREQUENCY_LABELS } from '../../utils/recommendationUtils';
 import { styles } from '../../styles/modals';
 
 const MySavingsModal = ({
@@ -31,7 +33,11 @@ const MySavingsModal = ({
   const handleEditSaving = (id) => {
     const saving = savings.find(s => s.id === id);
     setEditingId(id);
-    setEditingItem({ name: saving.name, amount: saving.amount.toString() });
+    setEditingItem({ 
+      name: saving.name, 
+      amount: saving.amount.toString(),
+      frequency: saving.frequency || FREQUENCY_TYPES.DAILY
+    });
   };
 
   const handleSaveEdit = () => {
@@ -46,11 +52,16 @@ const MySavingsModal = ({
     
     setSavings(savings.map(s => 
       s.id === editingId 
-        ? { ...s, name: editingItem.name.trim(), amount: amount }
+        ? { 
+            ...s, 
+            name: editingItem.name.trim(), 
+            amount: amount,
+            frequency: editingItem.frequency 
+          }
         : s
     ));
     setEditingId(null);
-    setEditingItem({ name: '', amount: '' });
+    setEditingItem({ name: '', amount: '', frequency: FREQUENCY_TYPES.DAILY });
   };
 
   const handleDeleteSaving = (id) => {
@@ -94,76 +105,95 @@ const MySavingsModal = ({
           <View style={{ width: 24 }} />
         </View>
         
-        <View style={styles.modalContent}>
+        <ScrollView style={styles.modalContent}>
           {savings.length === 0 ? (
             <View style={styles.emptySavings}>
               <Icon name="wallet" size={48} color="#d1d5db" />
               <Text style={styles.emptySavingsText}>Henüz tasarruf eklenmemiş</Text>
             </View>
           ) : (
-            <FlatList
-              data={savings}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.savingItem}>
-                  {editingId === item.id ? (
-                    <View style={styles.editingContainer}>
-                      <TextInput
-                        style={styles.editInput}
-                        value={editingItem.name}
-                        onChangeText={(text) => setEditingItem({ ...editingItem, name: text })}
-                        placeholder="Tasarruf adı"
-                      />
-                      <TextInput
-                        style={styles.editInput}
-                        value={editingItem.amount}
-                        onChangeText={(text) => setEditingItem({ ...editingItem, amount: text })}
-                        placeholder="Tutar"
-                        keyboardType="numeric"
-                      />
-                      <View style={styles.editActions}>
+            savings.map((item) => (
+              <View key={item.id.toString()} style={styles.savingItem}>
+                {editingId === item.id ? (
+                  <View style={styles.editingContainer}>
+                    <TextInput
+                      style={styles.editInput}
+                      value={editingItem.name}
+                      onChangeText={(text) => setEditingItem({ ...editingItem, name: text })}
+                      placeholder="Tasarruf adı"
+                    />
+                    <TextInput
+                      style={styles.editInput}
+                      value={editingItem.amount}
+                      onChangeText={(text) => setEditingItem({ ...editingItem, amount: text })}
+                      placeholder="Tutar"
+                      keyboardType="numeric"
+                    />
+                    <View style={styles.frequencyContainer}>
+                      {Object.entries(FREQUENCY_TYPES).map(([key, value]) => (
                         <TouchableOpacity
-                          style={styles.saveEditButton}
-                          onPress={handleSaveEdit}
+                          key={value}
+                          style={[
+                            styles.frequencyButton,
+                            editingItem.frequency === value && styles.frequencyButtonActive
+                          ]}
+                          onPress={() => setEditingItem({ ...editingItem, frequency: value })}
                         >
-                          <Icon name="checkmark" size={16} color="#fff" />
+                          <Text style={[
+                            styles.frequencyButtonText,
+                            editingItem.frequency === value && styles.frequencyButtonTextActive
+                          ]}>
+                            {FREQUENCY_LABELS[value]}
+                          </Text>
                         </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.cancelEditButton}
-                          onPress={() => setEditingId(null)}
-                        >
-                          <Icon name="close" size={16} color="#fff" />
-                        </TouchableOpacity>
-                      </View>
+                      ))}
                     </View>
-                  ) : (
-                    <View style={styles.savingItemContent}>
-                      <View style={styles.savingItemLeft}>
-                        <Text style={styles.savingItemName}>{item.name}</Text>
-                        <Text style={styles.savingItemAmount}>{item.amount} ₺</Text>
-                      </View>
-                      <View style={styles.savingItemActions}>
-                        <TouchableOpacity
-                          style={styles.editButton}
-                          onPress={() => handleEditSaving(item.id)}
-                        >
-                          <Icon name="pencil" size={16} color="#3b82f6" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.deleteButton}
-                          onPress={() => handleDeleteSaving(item.id)}
-                        >
-                          <Icon name="trash" size={16} color="#ef4444" />
-                        </TouchableOpacity>
-                      </View>
+                    <View style={styles.editActions}>
+                      <TouchableOpacity
+                        style={styles.saveEditButton}
+                        onPress={handleSaveEdit}
+                      >
+                        <Icon name="checkmark" size={16} color="#fff" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.cancelEditButton}
+                        onPress={() => setEditingId(null)}
+                      >
+                        <Icon name="close" size={16} color="#fff" />
+                      </TouchableOpacity>
                     </View>
-                  )}
-                </View>
-              )}
-              showsVerticalScrollIndicator={false}
-            />
+                  </View>
+                ) : (
+                  <View style={styles.savingItemContent}>
+                    <View style={styles.savingItemLeft}>
+                      <Text style={styles.savingItemName}>{item.name}</Text>
+                      <Text style={styles.savingItemAmount}>{item.amount} ₺</Text>
+                      {item.frequency && (
+                        <Text style={styles.savingItemFrequency}>
+                          {FREQUENCY_LABELS[item.frequency]}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.savingItemActions}>
+                      <TouchableOpacity
+                        style={styles.editButton}
+                        onPress={() => handleEditSaving(item.id)}
+                      >
+                        <Icon name="pencil" size={16} color="#3b82f6" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => handleDeleteSaving(item.id)}
+                      >
+                        <Icon name="trash" size={16} color="#ef4444" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+            ))
           )}
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </Modal>
   );

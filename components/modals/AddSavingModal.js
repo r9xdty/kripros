@@ -1,5 +1,5 @@
 // =====================================
-// src/components/modals/AddSavingModal.js
+// components/modals/AddSavingModal.js - UPDATED
 // =====================================
 import React, { useState } from 'react';
 import {
@@ -8,13 +8,19 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
 import Icon from '../common/Icon';
+import { FREQUENCY_TYPES, FREQUENCY_LABELS } from '../../utils/recommendationUtils';
 import { styles } from '../../styles/modals';
 
 const AddSavingModal = ({ visible, onClose, savings, setSavings }) => {
-  const [newSaving, setNewSaving] = useState({ name: '', amount: '' });
+  const [newSaving, setNewSaving] = useState({ 
+    name: '', 
+    amount: '',
+    frequency: FREQUENCY_TYPES.DAILY 
+  });
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleAddSaving = () => {
@@ -40,17 +46,18 @@ const AddSavingModal = ({ visible, onClose, savings, setSavings }) => {
       id: Date.now(),
       name: newSaving.name.trim(),
       amount: amount,
+      frequency: newSaving.frequency,
       createdAt: new Date().toISOString()
     };
     
     setSavings([...savings, saving]);
-    setNewSaving({ name: '', amount: '' });
+    setNewSaving({ name: '', amount: '', frequency: FREQUENCY_TYPES.DAILY });
     setErrorMessage('');
     onClose();
   };
 
   const handleClose = () => {
-    setNewSaving({ name: '', amount: '' });
+    setNewSaving({ name: '', amount: '', frequency: FREQUENCY_TYPES.DAILY });
     setErrorMessage('');
     onClose();
   };
@@ -73,14 +80,14 @@ const AddSavingModal = ({ visible, onClose, savings, setSavings }) => {
           <View style={{ width: 24 }} />
         </View>
         
-        <View style={styles.modalContent}>
+        <ScrollView style={styles.modalContent}>
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Tasarruf Adı</Text>
             <TextInput
               style={styles.textInput}
               value={newSaving.name}
               onChangeText={(text) => setNewSaving({ ...newSaving, name: text })}
-              placeholder="Örn: Cips almadım"
+              placeholder="Örn: Kahve almadım"
               placeholderTextColor="#9ca3af"
             />
           </View>
@@ -91,10 +98,33 @@ const AddSavingModal = ({ visible, onClose, savings, setSavings }) => {
               style={styles.textInput}
               value={newSaving.amount}
               onChangeText={(text) => setNewSaving({ ...newSaving, amount: text })}
-              placeholder="250"
+              placeholder="45"
               placeholderTextColor="#9ca3af"
               keyboardType="numeric"
             />
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Ne Sıklıkla Alıyorsunuz?</Text>
+            <View style={styles.frequencyContainer}>
+              {Object.entries(FREQUENCY_TYPES).map(([key, value]) => (
+                <TouchableOpacity
+                  key={value}
+                  style={[
+                    styles.frequencyButton,
+                    newSaving.frequency === value && styles.frequencyButtonActive
+                  ]}
+                  onPress={() => setNewSaving({ ...newSaving, frequency: value })}
+                >
+                  <Text style={[
+                    styles.frequencyButtonText,
+                    newSaving.frequency === value && styles.frequencyButtonTextActive
+                  ]}>
+                    {FREQUENCY_LABELS[value]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
           
           {errorMessage ? (
@@ -106,7 +136,7 @@ const AddSavingModal = ({ visible, onClose, savings, setSavings }) => {
           <TouchableOpacity style={styles.saveButton} onPress={handleAddSaving}>
             <Text style={styles.saveButtonText}>Kaydet</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </Modal>
   );

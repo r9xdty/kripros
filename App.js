@@ -1,9 +1,7 @@
 // =====================================
-// project_kripros/App.js
+// App.js - UPDATED WITH FREQUENCY SUPPORT
 // =====================================
-
-// App.js - WITH DEBUG TEST
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView, StatusBar, ScrollView, View } from 'react-native';
 import TabBar from './components/common/TabBar';
 import DashboardTab from './components/dashboard/DashboardTab';
@@ -13,6 +11,7 @@ import AddSavingModal from './components/modals/AddSavingModal';
 import MySavingsModal from './components/modals/MySavingsModal';
 import CalendarDayModal from './components/modals/CalendarDayModal';
 import { styles } from './styles/common';
+import { FREQUENCY_TYPES } from './utils/recommendationUtils';
 
 const App = () => {
   const [savings, setSavings] = useState([]);
@@ -22,103 +21,17 @@ const App = () => {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [editingItem, setEditingItem] = useState({ name: '', amount: '' });
+  const [editingItem, setEditingItem] = useState({ 
+    name: '', 
+    amount: '', 
+    frequency: FREQUENCY_TYPES.DAILY 
+  });
   const [chartView, setChartView] = useState('weekly');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [calendarView, setCalendarView] = useState({ 
     month: new Date().getMonth(), 
     year: new Date().getFullYear() 
   });
-/*
-  // ============ DEBUG TEST - REMOVE AFTER TESTING ============
-  useEffect(() => {
-    console.log("🔍 =========================");
-    console.log("🔍 CALENDAR DEBUG TEST");
-    console.log("🔍 =========================");
-    
-    // Test August 2025
-    const august3 = new Date(2025, 7, 3); // August 3, 2025
-    console.log("📅 August 3, 2025:");
-    console.log("  JavaScript day:", august3.getDay(), "(0=Sun, 1=Mon, ..., 6=Sat)");
-    console.log("  Day name (EN):", august3.toLocaleDateString('en-US', { weekday: 'long' }));
-    console.log("  Day name (TR):", august3.toLocaleDateString('tr-TR', { weekday: 'long' }));
-    
-    // Test the conversion formula
-    console.log("\n🔄 Monday-First Conversion Test:");
-    const jsDay = august3.getDay(); // Should be 0 (Sunday)
-    const mondayFirstPosition = (jsDay + 6) % 7; // Should be 6 (last column)
-    console.log("  JS getDay():", jsDay);
-    console.log("  After conversion:", mondayFirstPosition);
-    console.log("  Expected: 6 (last column for Sunday)");
-    console.log("  ✅ Correct?" , mondayFirstPosition === 6 ? "YES!" : "NO - BUG!");
-    
-    // Test getDaysInMonth
-    console.log("\n📊 Calendar Grid Test for August 2025:");
-    const getDaysInMonthTest = (month, year) => {
-      const firstDay = new Date(year, month, 1);
-      let startingDayOfWeek = firstDay.getDay();
-      startingDayOfWeek = (startingDayOfWeek + 6) % 7;
-      
-      console.log("  First day:", firstDay.toDateString());
-      console.log("  First day is:", firstDay.toLocaleDateString('en-US', { weekday: 'long' }));
-      console.log("  Empty cells before:", startingDayOfWeek);
-      
-      const days = [];
-      for (let i = 0; i < startingDayOfWeek; i++) {
-        days.push(null);
-      }
-      
-      const lastDay = new Date(year, month + 1, 0);
-      const daysInMonth = lastDay.getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        days.push(new Date(year, month, day));
-      }
-      
-      return days;
-    };
-    
-    const augustDays = getDaysInMonthTest(7, 2025);
-    
-    // Find August 3rd position
-    const aug3Index = augustDays.findIndex(d => d && d.getDate() === 3);
-    const column = aug3Index % 7;
-    
-    console.log("\n🎯 August 3rd Position:");
-    console.log("  Array index:", aug3Index);
-    console.log("  Column:", column);
-    console.log("  Column names: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']");
-    console.log("  Column", column, "=", ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'][column]);
-    console.log("  Should be: Paz (Sunday)");
-    console.log("  ✅ Correct?", column === 6 ? "YES!" : "NO - BUG!");
-    
-    // Visual calendar
-    console.log("\n📅 Visual August 2025:");
-    console.log("  Mon Tue Wed Thu Fri Sat Sun");
-    console.log("  Pzt Sal Çar Per Cum Cmt Paz");
-    console.log("  --- --- --- --- --- --- ---");
-    
-    let week = [];
-    for (let i = 0; i < augustDays.length; i++) {
-      if (augustDays[i] === null) {
-        week.push(' -- ');
-      } else {
-        week.push(' ' + String(augustDays[i].getDate()).padStart(2, '0') + ' ');
-      }
-      
-      if ((i + 1) % 7 === 0) {
-        console.log(" " + week.join(''));
-        week = [];
-      }
-    }
-    if (week.length > 0) {
-      console.log(" " + week.join(''));
-    }
-    
-    console.log("\n🔍 =========================");
-    console.log("🔍 END DEBUG TEST");
-    console.log("🔍 =========================");
-  }, []); // Run once on app start
-  // ============ END DEBUG TEST ============*/
 
   return (
     <SafeAreaView style={styles.container}>
@@ -190,3 +103,54 @@ const App = () => {
 };
 
 export default App;
+
+// =====================================
+// EXAMPLE USAGE AND HOW IT WORKS
+// =====================================
+/*
+HOW THE RECOMMENDATION ALGORITHM WORKS:
+
+1. FREQUENCY CATEGORIES:
+   - Günlük (Daily): Items you buy every day (e.g., coffee, newspaper)
+   - Haftalık (Weekly): Items you buy weekly (e.g., groceries, gas)
+   - Aylık (Monthly): Monthly expenses (e.g., subscription services)
+   - Yıllık (Yearly): Annual expenses (e.g., insurance, memberships)
+
+2. RECOMMENDATION LOGIC:
+   The algorithm analyzes:
+   - How long since last added (daysSince)
+   - Frequency setting of the saving
+   - Actual usage patterns (how often user really adds it)
+   - Whether it was already added today
+
+3. SCORING SYSTEM (0-100):
+   - Base score from frequency match (e.g., daily saving not added today = high score)
+   - Bonus points for consistent usage patterns
+   - Penalties for already added items (except daily)
+   - Only shows items with >20% score
+
+4. SMART FEATURES:
+   - Shows top 3 recommendations with reasons
+   - Displays match percentage
+   - Learns from user behavior
+   - Prevents duplicate additions (except daily items)
+
+EXAMPLE SCENARIOS:
+
+Scenario 1: Coffee Saving (Daily)
+- User typically saves on coffee every day
+- If not added today: Shows as top recommendation with ~95% score
+- Reason: "Bugün eklenebilir" (Can be added today)
+
+Scenario 2: Grocery Saving (Weekly)
+- User saves on groceries weekly
+- After 7+ days: Shows with high score
+- Reason: "1 haftadır eklenmemiş" (Not added for 1 week)
+
+Scenario 3: Netflix Saving (Monthly)
+- User saves on Netflix monthly
+- After 30+ days: Appears in recommendations
+- Reason: "1 aydır eklenmemiş" (Not added for 1 month)
+
+The algorithm gets smarter over time by tracking actual usage patterns!
+*/
