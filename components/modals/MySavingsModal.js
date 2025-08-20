@@ -1,7 +1,7 @@
 // =====================================
-// components/modals/MySavingsModal.js - UPDATED WITH FREQUENCY
+// components/modals/MySavingsModal.js - WITH BACK BUTTON
 // =====================================
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   SafeAreaView,
@@ -11,7 +11,8 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  ScrollView
+  ScrollView,
+  BackHandler
 } from 'react-native';
 import Icon from '../common/Icon';
 import { FREQUENCY_TYPES, FREQUENCY_LABELS } from '../../utils/recommendationUtils';
@@ -29,6 +30,19 @@ const MySavingsModal = ({
   editingItem,
   setEditingItem
 }) => {
+  
+  // Handle Android back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (visible) {
+        onClose();
+        return true;
+      }
+      return false;
+    });
+
+    return () => backHandler.remove();
+  }, [visible, onClose]);
   
   const handleEditSaving = (id) => {
     const saving = savings.find(s => s.id === id);
@@ -92,20 +106,26 @@ const MySavingsModal = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      onRequestClose={onClose}
     >
       <SafeAreaView style={styles.modalContainer}>
         <View style={styles.modalHeader}>
           <TouchableOpacity
             style={styles.modalCloseButton}
             onPress={onClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name="close" size={24} color="#666" />
+            <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Tasarruflarım</Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 40 }} />
         </View>
         
-        <ScrollView style={styles.modalContent}>
+        <ScrollView 
+          style={styles.modalContent}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
           {savings.length === 0 ? (
             <View style={styles.emptySavings}>
               <Icon name="wallet" size={48} color="#d1d5db" />

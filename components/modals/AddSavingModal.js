@@ -1,7 +1,7 @@
 // =====================================
-// components/modals/AddSavingModal.js - UPDATED
+// components/modals/AddSavingModal.js - WITH BACK BUTTON
 // =====================================
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   SafeAreaView,
@@ -9,7 +9,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  BackHandler
 } from 'react-native';
 import Icon from '../common/Icon';
 import { FREQUENCY_TYPES, FREQUENCY_LABELS } from '../../utils/recommendationUtils';
@@ -22,6 +23,19 @@ const AddSavingModal = ({ visible, onClose, savings, setSavings }) => {
     frequency: FREQUENCY_TYPES.DAILY 
   });
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Handle Android back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (visible) {
+        handleClose();
+        return true;
+      }
+      return false;
+    });
+
+    return () => backHandler.remove();
+  }, [visible]);
 
   const handleAddSaving = () => {
     setErrorMessage('');
@@ -67,20 +81,26 @@ const AddSavingModal = ({ visible, onClose, savings, setSavings }) => {
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      onRequestClose={handleClose}
     >
       <SafeAreaView style={styles.modalContainer}>
         <View style={styles.modalHeader}>
           <TouchableOpacity
             style={styles.modalCloseButton}
             onPress={handleClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name="close" size={24} color="#666" />
+            <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Tasarruf Ekle</Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 40 }} />
         </View>
         
-        <ScrollView style={styles.modalContent}>
+        <ScrollView 
+          style={styles.modalContent}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Tasarruf Adı</Text>
             <TextInput

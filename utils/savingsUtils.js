@@ -1,5 +1,5 @@
 // =====================================
-// utils/savingsUtils.js - FIXED CHART LABELS
+// utils/savingsUtils.js - REVERTED WEEKLY CHART + NEW TITLES
 // =====================================
 import { formatDate } from './dateUtils';
 
@@ -12,6 +12,7 @@ export const getDayTotal = (date, dailySavings) => {
   return daySavings.reduce((sum, saving) => sum + saving.amount, 0);
 };
 
+// REVERTED to original - Shows last 7 days ending with today
 export const getWeeklyData = (dailySavings) => {
   const data = [];
   const labels = [];
@@ -62,7 +63,6 @@ export const getYearlyData = (dailySavings) => {
   const data = [];
   const labels = [];
   
-  // Turkish month abbreviations
   const MONTH_NAMES_SHORT = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
   
   for (let i = 0; i < 12; i++) {
@@ -166,25 +166,3 @@ export const getSavingsHistory = (dailySavings) => {
     return dateB - dateA;
   });
 };
-
-// =====================================
-// Optional: Add this debug function temporarily
-// =====================================
-export const debugChartDays = () => {
-  console.log("=== Chart Days Debug ===");
-  const today = new Date();
-  
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dayOfWeek = date.getDay();
-    const dayName = CHART_DAY_NAMES[dayOfWeek];
-    
-    console.log(`${date.toDateString()} - Day ${dayOfWeek} - ${dayName}`);
-  }
-  
-  console.log("Expected order: Last 7 days ending with today");
-  console.log("Today is:", today.toDateString(), "- Day", today.getDay(), "-", CHART_DAY_NAMES[today.getDay()]);
-};
-
-// To use debug: Call debugChartDays() in any component

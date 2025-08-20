@@ -1,5 +1,5 @@
 // =====================================
-// src/styles/dashboard.js
+// styles/dashboard.js - FIXED CHART Z-INDEX
 // =====================================
 import { StyleSheet } from 'react-native';
 
@@ -59,7 +59,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20, // More space between header and chart
+    zIndex: 10, // Ensure buttons are above chart
   },
   chartTitle: {
     fontSize: 18,
@@ -71,6 +72,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     borderRadius: 8,
     padding: 2,
+    zIndex: 10, // Ensure selector is above chart
   },
   chartViewButton: {
     paddingHorizontal: 12,
@@ -92,12 +94,13 @@ export const styles = StyleSheet.create({
     height: 140,
     justifyContent: 'flex-end',
     paddingBottom: 20,
+    zIndex: 1, // Chart bars below header
   },
   chartBars: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
-    height: 120,
+    height: 100, // Reduced from 120 to 100 to prevent overlap
   },
   chartBarContainer: {
     alignItems: 'center',

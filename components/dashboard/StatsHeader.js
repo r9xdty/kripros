@@ -1,5 +1,5 @@
 // =====================================
-// src/components/dashboard/StatsHeader.js
+// components/dashboard/StatsHeader.js - WITH NEW PERIOD LABELS
 // =====================================
 import React from 'react';
 import { View, Text } from 'react-native';
@@ -9,10 +9,10 @@ import { styles } from '../../styles/dashboard';
 const StatsHeader = ({ totalSavings, periodTotal, chartView }) => {
   const getPeriodLabel = () => {
     switch(chartView) {
-      case 'weekly': return 'Haftalık';
-      case 'monthly': return 'Aylık';
-      case 'yearly': return 'Yıllık';
-      default: return 'Haftalık';
+      case 'weekly': return 'Son 7 Gün';
+      case 'monthly': return 'Son 30 Gün';
+      case 'yearly': return 'Son 12 Ay';
+      default: return 'Dönem';
     }
   };
 
@@ -28,7 +28,7 @@ const StatsHeader = ({ totalSavings, periodTotal, chartView }) => {
           <Text style={styles.statValue}>{totalSavings.toFixed(2)} ₺</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>{getPeriodLabel()} Tasarruf</Text>
+          <Text style={styles.statLabel}>{getPeriodLabel()}</Text>
           <Text style={[styles.statValue, { color: '#3b82f6' }]}>
             {periodTotal.toFixed(2)} ₺
           </Text>
