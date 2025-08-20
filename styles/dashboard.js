@@ -1,9 +1,47 @@
 // =====================================
-// styles/dashboard.js - FIXED CHART Z-INDEX
+// styles/dashboard.js - ADDED TOOLTIP STYLES
 // =====================================
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  // ... (keep all existing styles)
+  
+  // Chart Tooltip Styles
+  chartTooltip: {
+    position: 'absolute',
+    top: -50,
+    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+    borderRadius: 8,
+    padding: 8,
+    minWidth: 80,
+    alignItems: 'center',
+    transform: [{ translateX: -40 }],
+    zIndex: 1000,
+  },
+  chartTooltipArrow: {
+    position: 'absolute',
+    bottom: -5,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderTopWidth: 5,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: 'rgba(31, 41, 55, 0.95)',
+  },
+  chartTooltipLabel: {
+    fontSize: 11,
+    color: '#fff',
+    marginBottom: 2,
+  },
+  chartTooltipValue: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  
+  // Keep existing styles below...
   header: {
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -59,8 +97,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20, // More space between header and chart
-    zIndex: 10, // Ensure buttons are above chart
+    marginBottom: 20,
+    zIndex: 10,
   },
   chartTitle: {
     fontSize: 18,
@@ -72,7 +110,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     borderRadius: 8,
     padding: 2,
-    zIndex: 10, // Ensure selector is above chart
+    zIndex: 10,
   },
   chartViewButton: {
     paddingHorizontal: 12,
@@ -93,30 +131,41 @@ export const styles = StyleSheet.create({
   simpleChart: {
     height: 140,
     justifyContent: 'flex-end',
-    paddingBottom: 20,
-    zIndex: 1, // Chart bars below header
+    paddingBottom: 5,
+    zIndex: 1,
+    position: 'relative',
   },
   chartBars: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
-    height: 100, // Reduced from 120 to 100 to prevent overlap
+    height: 100,
   },
   chartBarContainer: {
     alignItems: 'center',
     flex: 1,
+    paddingHorizontal: 2,
   },
   chartBar: {
     backgroundColor: '#3b82f6',
-    width: 20,
-    borderRadius: 2,
-    marginBottom: 8,
+    width: '80%',
+    borderRadius: 4,
+    marginBottom: 4,
     minHeight: 2,
+  },
+  selectedChartBar: {
+    backgroundColor: '#1d4ed8',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 5,
   },
   chartLabel: {
     fontSize: 10,
     color: '#6b7280',
     textAlign: 'center',
+    marginTop: 2,
   },
   actionButtons: {
     flexDirection: 'row',

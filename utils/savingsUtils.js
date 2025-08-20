@@ -1,10 +1,51 @@
 // =====================================
-// utils/savingsUtils.js - REVERTED WEEKLY CHART + NEW TITLES
+// utils/savingsUtils.js - ADDED PIE CHART DATA FUNCTION
 // =====================================
 import { formatDate } from './dateUtils';
 
 // Turkish day names for chart
 const CHART_DAY_NAMES = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+
+// Color generator with seeded random for consistency
+const generateColor = (seed) => {
+  const colors = [
+    '#10b981', // emerald
+    '#3b82f6', // blue
+    '#8b5cf6', // violet
+    '#ec4899', // pink
+    '#f59e0b', // amber
+    '#ef4444', // red
+    '#06b6d4', // cyan
+    '#84cc16', // lime
+    '#f97316', // orange
+    '#6366f1', // indigo
+    '#14b8a6', // teal
+    '#a855f7', // purple
+  ];
+  
+  // Use string hash to get consistent color for same item
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// Generate darker shade for larger amounts
+const adjustColorBrightness = (color, amount, maxAmount) => {
+  const percentage = amount / maxAmount;
+  // Larger amounts get darker colors (more saturation)
+  if (percentage > 0.5) {
+    // Darken the color slightly for large amounts
+    return color.replace(/[0-9a-f]{2}$/i, (match) => {
+      const num = parseInt(match, 16);
+      const darker = Math.floor(num * 0.8);
+      return darker.toString(16).padStart(2, '0');
+    });
+  }
+  return color;
+};
 
 export const getDayTotal = (date, dailySavings) => {
   const dateStr = formatDate(date);
@@ -12,7 +53,49 @@ export const getDayTotal = (date, dailySavings) => {
   return daySavings.reduce((sum, saving) => sum + saving.amount, 0);
 };
 
-// REVERTED to original - Shows last 7 days ending with today
+// New function for pie chart data
+export const getWeeklyPieData = (dailySavings, weekStart, weekEnd) => {
+  const savingsMap = new Map();
+  
+  // Collect all savings for the week
+  for (let i = 0; i < 7; i++) {
+    const currentDate = new Date(weekStart);
+    currentDate.setDate(weekStart.getDate() + i);
+    currentDate.setHours(0, 0, 0, 0);
+    
+    const dateStr = formatDate(currentDate);
+    const daySavings = dailySavings[dateStr] || [];
+    
+    // Group by saving name
+    daySavings.forEach(saving => {
+      const key = saving.name;
+      if (savingsMap.has(key)) {
+        savingsMap.get(key).amount += saving.amount;
+        savingsMap.get(key).count += 1;
+      } else {
+        savingsMap.set(key, {
+          name: saving.name,
+          amount: saving.amount,
+          count: 1
+        });
+      }
+    });
+  }
+  
+  // Convert to array and sort by amount (largest first)
+  const pieData = Array.from(savingsMap.values()).sort((a, b) => b.amount - a.amount);
+  
+  // Find max amount for color adjustment
+  const maxAmount = pieData.length > 0 ? pieData[0].amount : 0;
+  
+  // Assign colors
+  return pieData.map(item => ({
+    ...item,
+    color: adjustColorBrightness(generateColor(item.name), item.amount, maxAmount)
+  }));
+};
+
+// Rest of the functions remain the same...
 export const getWeeklyData = (dailySavings) => {
   const data = [];
   const labels = [];
@@ -24,9 +107,7 @@ export const getWeeklyData = (dailySavings) => {
     const dayTotal = getDayTotal(date, dailySavings);
     
     data.push(dayTotal);
-    
-    // Use the day of week to get the correct Turkish day name
-    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const dayOfWeek = date.getDay();
     labels.push(CHART_DAY_NAMES[dayOfWeek]);
   }
   
