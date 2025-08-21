@@ -1,83 +1,45 @@
 // =====================================
-// styles/calendar.js - ENHANCED WITH NEW STYLES
+// styles/calendar.js - FIXED CALENDAR SIZE & BOTTOM PADDING
 // =====================================
 import { StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const CALENDAR_PADDING = 40;
-const DAY_WIDTH = (width - CALENDAR_PADDING) / 7;
+const CHART_SIZE = width - 100;
 
 export const styles = StyleSheet.create({
   calendarTabContainer: {
     flex: 1,
     backgroundColor: '#f8f9ff',
+    paddingBottom: 100, // Added padding to prevent content cutoff
   },
   calendarContainer: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 20,
-    margin: 20,
-    marginBottom: 0, // Reduced bottom margin
+    padding: 20, // Adjusted padding
+    margin: 16,
+    marginBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
   },
-  calendarHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  calendarTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginLeft: 8,
-  },
-  extendedCalendarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 8,
-  },
-  monthYearButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
-    marginHorizontal: 10,
-  },
-  extendedCalendarTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
-  tapToChangeText: {
-    fontSize: 10,
-    color: '#6b7280',
-    marginTop: 2,
-  },
-  calendarNavButton: {
-    padding: 8,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 20,
-  },
+  
+  // Calendar styles - BIGGER & FIXED
   calendar: {
-    marginTop: 8,
+    marginTop: 12,
   },
   calendarWeekHeader: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 10,
+    paddingHorizontal: 2,
   },
   calendarHeaderCell: {
     flex: 1,
     alignItems: 'center',
   },
   calendarWeekDay: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: '#6b7280',
     textAlign: 'center',
@@ -95,15 +57,19 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 10,
+    padding: 2, // Added padding for better text containment
   },
-  calendarDay: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
+  calendarDayText: {
+    fontSize: 15, // Slightly reduced from 16
+    fontWeight: '500',
+    color: '#374151',
   },
-  emptyCalendarDay: {
-    // Empty day styling
+  calendarDayAmount: {
+    fontSize: 10, // Slightly smaller to fit better
+    color: '#166534',
+    fontWeight: '600',
+    marginTop: 1,
   },
   todayCalendarDay: {
     backgroundColor: '#3b82f6',
@@ -113,14 +79,6 @@ export const styles = StyleSheet.create({
   },
   futureDateDisabled: {
     backgroundColor: '#f3f4f6',
-  },
-  otherMonthDay: {
-    opacity: 0.3,
-  },
-  calendarDayText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
   },
   todayText: {
     color: '#fff',
@@ -133,20 +91,63 @@ export const styles = StyleSheet.create({
   futureDateText: {
     color: '#9ca3af',
   },
+  otherMonthDay: {
+    opacity: 0.3,
+  },
   otherMonthText: {
     color: '#9ca3af',
   },
-  calendarDayAmount: {
-    fontSize: 10,
-    color: '#166534',
-    fontWeight: '500',
+  
+  // Calendar header
+  extendedCalendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
+  monthYearButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    marginHorizontal: 10,
+  },
+  extendedCalendarTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  tapToChangeText: {
+    fontSize: 11,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  calendarNavButton: {
+    padding: 10,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 20,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  calendarTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginLeft: 8,
+  },
+  
   // Weekly Pie Chart Styles
   weeklyChartContainer: {
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
-    margin: 20,
+    margin: 16,
+    marginBottom: 100, // Large bottom margin to ensure visibility
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -166,34 +167,50 @@ export const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 4,
   },
-  pieChartContainer: {
+  
+  // Pie Chart
+  pieChartWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 20,
     position: 'relative',
+    marginVertical: 20,
   },
-  chartCenterText: {
+  pieChartCenter: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chartTotalLabel: {
+  pieCenterLabel: {
     fontSize: 14,
     color: '#6b7280',
   },
-  chartTotalAmount: {
+  pieCenterAmount: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1f2937',
   },
-  emptyChartContainer: {
-    paddingVertical: 60,
+  pieTooltip: {
+    position: 'absolute',
+    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     alignItems: 'center',
+    zIndex: 1000,
+    elevation: 999,
   },
-  emptyChartText: {
+  pieTooltipName: {
+    fontSize: 14,
+    color: '#fff',
+    marginBottom: 4,
+  },
+  pieTooltipAmount: {
     fontSize: 16,
-    color: '#9ca3af',
+    fontWeight: 'bold',
+    color: '#fff',
   },
+  
+  // Legend
   legendContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -208,42 +225,75 @@ export const styles = StyleSheet.create({
     width: '50%',
     paddingVertical: 8,
   },
-  legendColor: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
+  legendDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     marginRight: 8,
   },
   legendText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 13,
     color: '#374151',
   },
   legendAmount: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: '#6b7280',
     marginLeft: 4,
   },
-  tooltip: {
-    position: 'absolute',
-    backgroundColor: 'rgba(31, 41, 55, 0.95)',
-    borderRadius: 8,
-    padding: 8,
-    minWidth: 100,
-    alignItems: 'center',
-    zIndex: 1000,
+  
+  // Top Items
+  topItemsContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
-  tooltipText: {
-    fontSize: 12,
-    color: '#fff',
-    marginBottom: 2,
-  },
-  tooltipAmount: {
+  topItemsTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 12,
   },
+  topItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  topItemRank: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  topItemRankText: {
+    fontSize: 11,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  topItemName: {
+    flex: 1,
+    fontSize: 14,
+    color: '#374151',
+  },
+  topItemAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10b981',
+  },
+  
+  emptyChartContainer: {
+    paddingVertical: 60,
+    alignItems: 'center',
+  },
+  emptyChartText: {
+    fontSize: 16,
+    color: '#9ca3af',
+  },
+  
   // Date Picker Modal Styles
   pickerOverlay: {
     flex: 1,
@@ -331,188 +381,5 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  
-  // Weekly Breakdown Styles
-  weeklyBreakdownContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    margin: 20,
-    marginBottom: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  weeklyBreakdownHeader: {
-    marginBottom: 20,
-  },
-  weeklyBreakdownTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
-  weeklyBreakdownDate: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 4,
-  },
-  weeklyBreakdownChart: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 10,
-  },
-  dayBreakdownContainer: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  dayCircle: {
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  dayCircleAmount: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  dayLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  dayItemCount: {
-    fontSize: 9,
-    color: '#6b7280',
-    marginTop: 2,
-  },
-  weeklyBreakdownFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  weeklyTotal: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  weeklyTotalAmount: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#10b981',
-  },
-  topSavingsContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  topSavingsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 8,
-  },
-  topSavingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  topSavingName: {
-    fontSize: 13,
-    color: '#374151',
-    flex: 1,
-  },
-  topSavingAmount: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#10b981',
-  },
-  calendarHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  calendarTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginLeft: 8,
-  },
-  extendedCalendarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 8,
-  },
-  monthYearButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
-    marginHorizontal: 10,
-  },
-  extendedCalendarTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
-  tapToChangeText: {
-    fontSize: 10,
-    color: '#6b7280',
-    marginTop: 2,
-  },
-  calendarNavButton: {
-    padding: 8,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 20,
-  },
-  calendar: {
-    marginTop: 8,
-  },
-  calendarWeekHeader: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  calendarHeaderCell: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  calendarWeekDay: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  calendarGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  calendarDayWrapper: {
-    width: '14.28%',
-    aspectRatio: 1,
-    padding: 2,
-  },
-  calendarDayInner: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
   },
 });

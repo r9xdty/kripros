@@ -1,26 +1,29 @@
 // =====================================
-// styles/dashboard.js - ADDED TOOLTIP STYLES
+// styles/dashboard.js - IMPROVED TOOLTIP CENTERING
 // =====================================
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  // ... (keep all existing styles)
-  
-  // Chart Tooltip Styles
+  // Chart Wrapper and Tooltip Styles
+  chartWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
   chartTooltip: {
     position: 'absolute',
-    top: -50,
     backgroundColor: 'rgba(31, 41, 55, 0.95)',
     borderRadius: 8,
-    padding: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     minWidth: 80,
     alignItems: 'center',
-    transform: [{ translateX: -40 }],
-    zIndex: 1000,
+    zIndex: 9999,
+    elevation: 999,
   },
   chartTooltipArrow: {
     position: 'absolute',
     bottom: -5,
+    alignSelf: 'center',
     width: 0,
     height: 0,
     borderLeftWidth: 5,
@@ -29,6 +32,16 @@ export const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: 'rgba(31, 41, 55, 0.95)',
+  },
+  chartTooltipLabel: {
+    fontSize: 11,
+    color: '#fff',
+    marginBottom: 2,
+  },
+  chartTooltipValue: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   chartTooltipLabel: {
     fontSize: 11,
@@ -98,7 +111,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    zIndex: 10,
   },
   chartTitle: {
     fontSize: 18,
@@ -110,7 +122,6 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     borderRadius: 8,
     padding: 2,
-    zIndex: 10,
   },
   chartViewButton: {
     paddingHorizontal: 12,
@@ -132,7 +143,7 @@ export const styles = StyleSheet.create({
     height: 140,
     justifyContent: 'flex-end',
     paddingBottom: 5,
-    zIndex: 1,
+    paddingTop: 40, // Space for tooltip
     position: 'relative',
   },
   chartBars: {

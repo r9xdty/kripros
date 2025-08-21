@@ -1,5 +1,5 @@
 // =====================================
-// components/dashboard/Chart.js - WITH LONG PRESS TOOLTIP
+// components/dashboard/Chart.js - FIXED TOOLTIP POSITIONING
 // =====================================
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
@@ -9,6 +9,7 @@ const Chart = ({ chartData, chartView, setChartView }) => {
   const [selectedBar, setSelectedBar] = useState(null);
   const [tooltipData, setTooltipData] = useState(null);
   const maxValue = Math.max(...chartData.data);
+  const barCount = chartData.data.length;
   
   // Get the appropriate title based on view
   const getChartTitle = () => {
@@ -24,7 +25,7 @@ const Chart = ({ chartData, chartView, setChartView }) => {
     }
   };
   
-  const handleLongPress = (value, label, index, event) => {
+  const handleLongPress = (value, label, index) => {
     setSelectedBar(index);
     let periodText = '';
     switch(chartView) {
@@ -39,16 +40,28 @@ const Chart = ({ chartData, chartView, setChartView }) => {
         break;
     }
     
+    // Calculate bar height for positioning tooltip
+    const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
+    
     setTooltipData({
       label: periodText,
       value: value.toFixed(2),
-      index: index
+      index: index,
+      barHeight: barHeight
     });
   };
   
   const handlePressOut = () => {
     setSelectedBar(null);
     setTooltipData(null);
+  };
+  
+  // Calculate horizontal position for tooltip
+  const getTooltipLeft = (index) => {
+    // Calculate the center position of the bar
+    const barWidth = 100 / barCount;
+    const barCenter = (index * barWidth) + (barWidth / 2);
+    return `${barCenter}%`;
   };
   
   return (
@@ -85,39 +98,53 @@ const Chart = ({ chartData, chartView, setChartView }) => {
         </View>
       </View>
       
-      <View style={styles.simpleChart}>
-        <View style={styles.chartBars}>
-          {chartData.data.map((value, index) => {
-            const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
-            
-            return (
-              <TouchableOpacity
-                key={index}
-                style={styles.chartBarContainer}
-                onLongPress={(e) => handleLongPress(value, chartData.labels[index], index, e)}
-                onPressOut={handlePressOut}
-                activeOpacity={1}
-                delayLongPress={100}
-              >
-                <View style={[
-                  styles.chartBar, 
-                  { height: barHeight },
-                  selectedBar === index && styles.selectedChartBar
-                ]} />
-                <Text style={styles.chartLabel}>{chartData.labels[index]}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        
-        {/* Tooltip */}
+      <View style={styles.chartWrapper}>
+        {/* Tooltip positioned absolutely within wrapper */}
         {tooltipData && (
-          <View style={[styles.chartTooltip, { left: (tooltipData.index * (100 / chartData.data.length)) + '%' }]}>
-            <View style={styles.chartTooltipArrow} />
+          <View 
+            style={[
+              styles.chartTooltip,
+              { 
+                left: getTooltipLeft(tooltipData.index),
+                transform: [{ translateX: -40 }], // Half of approximate tooltip width
+                // Position based on bar height: 100 is max bar container height
+                // 40 is paddingTop of simpleChart, add some offset for spacing
+                bottom: 45 + tooltipData.barHeight // Position above the bar
+              }
+            ]}
+            pointerEvents="none"
+          >
             <Text style={styles.chartTooltipLabel}>{tooltipData.label}</Text>
             <Text style={styles.chartTooltipValue}>{tooltipData.value} ₺</Text>
+            <View style={styles.chartTooltipArrow} />
           </View>
         )}
+        
+        <View style={styles.simpleChart}>
+          <View style={styles.chartBars}>
+            {chartData.data.map((value, index) => {
+              const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
+              
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.chartBarContainer}
+                  onLongPress={() => handleLongPress(value, chartData.labels[index], index)}
+                  onPressOut={handlePressOut}
+                  activeOpacity={1}
+                  delayLongPress={100}
+                >
+                  <View style={[
+                    styles.chartBar, 
+                    { height: barHeight },
+                    selectedBar === index && styles.selectedChartBar
+                  ]} />
+                  <Text style={styles.chartLabel}>{chartData.labels[index]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
       </View>
     </View>
   );

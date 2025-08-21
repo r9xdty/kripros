@@ -1,5 +1,5 @@
 // =====================================
-// components/calendar/CalendarTab.js - REORDERED WITH CALENDAR ON TOP
+// components/calendar/CalendarTab.js - FIXED WITH PROPER SCROLLING
 // =====================================
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
@@ -62,8 +62,12 @@ const CalendarTab = ({
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
   return (
-    <ScrollView style={styles.calendarTabContainer} showsVerticalScrollIndicator={false}>
-      {/* Calendar - NOW ON TOP */}
+    <ScrollView 
+      style={styles.calendarTabContainer} 
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 120 }} // Extra padding for scroll content
+    >
+      {/* Calendar - ON TOP */}
       <View style={styles.calendarContainer}>
         <View style={styles.extendedCalendarHeader}>
           <TouchableOpacity
@@ -115,7 +119,7 @@ const CalendarTab = ({
         />
       </View>
       
-      {/* Weekly Pie Chart - NOW BELOW CALENDAR */}
+      {/* Weekly Pie Chart - BELOW CALENDAR */}
       {selectedWeek && (
         <WeeklyPieChart
           dailySavings={dailySavings}
