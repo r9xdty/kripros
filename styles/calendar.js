@@ -4,7 +4,7 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const CHART_SIZE = width - 100;
+const CHART_SIZE = width - 60; // Increased size for external labels
 
 export const styles = StyleSheet.create({
   calendarTabContainer: {
@@ -145,7 +145,7 @@ export const styles = StyleSheet.create({
   weeklyChartContainer: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 20,
+    padding: 15,
     margin: 16,
     marginBottom: 100, // Large bottom margin to ensure visibility
     shadowColor: '#000',
@@ -173,7 +173,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginVertical: 20,
+    marginVertical: 15,
   },
   pieChartCenter: {
     position: 'absolute',
@@ -210,43 +210,10 @@ export const styles = StyleSheet.create({
     color: '#fff',
   },
   
-  // Legend
-  legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '50%',
-    paddingVertical: 8,
-  },
-  legendDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    marginRight: 8,
-  },
-  legendText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#374151',
-  },
-  legendAmount: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginLeft: 4,
-  },
-  
   // Top Items
   topItemsContainer: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 20,
+    paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
   },
