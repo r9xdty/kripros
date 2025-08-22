@@ -157,10 +157,38 @@ export const styles = StyleSheet.create({
   weeklyChartHeader: {
     marginBottom: 20,
   },
+  chartHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   weeklyChartTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
+  },
+  chartViewSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 2,
+  },
+  chartViewButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  activeChartView: {
+    backgroundColor: '#3b82f6',
+  },
+  chartViewText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  activeChartViewText: {
+    color: '#fff',
   },
   weeklyChartDate: {
     fontSize: 14,
@@ -227,6 +255,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   topItemRank: {
     width: 24,

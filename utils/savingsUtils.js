@@ -246,4 +246,6 @@ export const getSavingsHistory = (dailySavings) => {
     const dateB = b.action === 'removed' ? new Date(b.removedAt) : new Date(b.addedAt);
     return dateB - dateA;
   });
+
+  
 };

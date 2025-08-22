@@ -125,6 +125,8 @@ const CalendarTab = ({
           dailySavings={dailySavings}
           weekStart={selectedWeek.start}
           weekEnd={selectedWeek.end}
+          currentMonth={calendarView.month}
+          currentYear={calendarView.year}
         />
       )}
 
