@@ -1,5 +1,5 @@
 // =====================================
-// utils/savingsUtils.js - ADDED PIE CHART DATA FUNCTION
+// utils/savingsUtils.js - FIXED WITH DEBUGGING
 // =====================================
 import { formatDate } from './dateUtils';
 
@@ -53,8 +53,15 @@ export const getDayTotal = (date, dailySavings) => {
   return daySavings.reduce((sum, saving) => sum + saving.amount, 0);
 };
 
-// New function for pie chart data
+// PIE CHART DATA FUNCTIONS
+
+// Weekly pie chart data - FIXED
 export const getWeeklyPieData = (dailySavings, weekStart, weekEnd) => {
+  if (!weekStart || !weekEnd) {
+    console.log('getWeeklyPieData: Missing weekStart or weekEnd');
+    return [];
+  }
+
   const savingsMap = new Map();
   
   // Collect all savings for the week
@@ -89,13 +96,105 @@ export const getWeeklyPieData = (dailySavings, weekStart, weekEnd) => {
   const maxAmount = pieData.length > 0 ? pieData[0].amount : 0;
   
   // Assign colors
+  const result = pieData.map(item => ({
+    ...item,
+    color: adjustColorBrightness(generateColor(item.name), item.amount, maxAmount)
+  }));
+  
+  return result;
+};
+
+// Monthly pie chart data - for calendar month
+export const getMonthlyPieData = (dailySavings, month, year) => {
+  const savingsMap = new Map();
+  
+  // Go through all daily savings
+  Object.entries(dailySavings).forEach(([dateStr, dayData]) => {
+    // Skip removed entries
+    if (dateStr.includes('_removed')) return;
+    
+    // Parse the date string (format: YYYY-MM-DD)
+    const [yearStr, monthStr, dayStr] = dateStr.split('-');
+    const dateYear = parseInt(yearStr);
+    const dateMonth = parseInt(monthStr) - 1; // JavaScript months are 0-indexed
+    
+    // Check if this date is in the specified month and year
+    if (dateMonth === month && dateYear === year) {
+      dayData.forEach(saving => {
+        const key = saving.name;
+        if (savingsMap.has(key)) {
+          savingsMap.get(key).amount += saving.amount;
+          savingsMap.get(key).count += 1;
+        } else {
+          savingsMap.set(key, {
+            name: saving.name,
+            amount: saving.amount,
+            count: 1
+          });
+        }
+      });
+    }
+  });
+  
+  // Convert to array and sort by amount (largest first)
+  const pieData = Array.from(savingsMap.values()).sort((a, b) => b.amount - a.amount);
+  
+  // Find max amount for color adjustment
+  const maxAmount = pieData.length > 0 ? pieData[0].amount : 0;
+  
+  // Assign colors
   return pieData.map(item => ({
     ...item,
     color: adjustColorBrightness(generateColor(item.name), item.amount, maxAmount)
   }));
 };
 
-// Rest of the functions remain the same...
+// Yearly pie chart data - for calendar year
+export const getYearlyPieData = (dailySavings, year) => {
+  const savingsMap = new Map();
+  
+  // Go through all daily savings
+  Object.entries(dailySavings).forEach(([dateStr, dayData]) => {
+    // Skip removed entries
+    if (dateStr.includes('_removed')) return;
+    
+    // Parse the date string (format: YYYY-MM-DD)
+    const [yearStr] = dateStr.split('-');
+    const dateYear = parseInt(yearStr);
+    
+    // Check if this date is in the specified year
+    if (dateYear === year) {
+      dayData.forEach(saving => {
+        const key = saving.name;
+        if (savingsMap.has(key)) {
+          savingsMap.get(key).amount += saving.amount;
+          savingsMap.get(key).count += 1;
+        } else {
+          savingsMap.set(key, {
+            name: saving.name,
+            amount: saving.amount,
+            count: 1
+          });
+        }
+      });
+    }
+  });
+  
+  // Convert to array and sort by amount (largest first)
+  const pieData = Array.from(savingsMap.values()).sort((a, b) => b.amount - a.amount);
+  
+  // Find max amount for color adjustment
+  const maxAmount = pieData.length > 0 ? pieData[0].amount : 0;
+  
+  // Assign colors
+  return pieData.map(item => ({
+    ...item,
+    color: adjustColorBrightness(generateColor(item.name), item.amount, maxAmount)
+  }));
+};
+
+// BAR CHART DATA FUNCTIONS
+
 export const getWeeklyData = (dailySavings) => {
   const data = [];
   const labels = [];
@@ -182,6 +281,8 @@ export const getChartData = (chartView, dailySavings) => {
   }
 };
 
+// UTILITY FUNCTIONS
+
 export const calculateTotalSavings = (dailySavings) => {
   return Object.entries(dailySavings)
     .filter(([dateKey]) => !dateKey.includes('_removed'))
@@ -246,6 +347,4 @@ export const getSavingsHistory = (dailySavings) => {
     const dateB = b.action === 'removed' ? new Date(b.removedAt) : new Date(b.addedAt);
     return dateB - dateA;
   });
-
-  
 };
