@@ -1,5 +1,5 @@
 // =====================================
-// styles/calendar.js - FIXED CALENDAR SIZE & BOTTOM PADDING
+// styles/calendar.js - FIXED CALENDAR SIZE & BOTTOM PADDING WITH INTEGRATED YEAR
 // =====================================
 import { StyleSheet, Dimensions } from 'react-native';
 
@@ -199,6 +199,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 4,
+    gap: 8,
   },
   navButton: {
     padding: 8,
@@ -357,6 +358,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#374151',
+    marginRight: 8,
   },
   
   // Pie Chart
@@ -518,9 +520,6 @@ export const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: '#f3f4f6',
   },
-  selectedYearOption: {
-    backgroundColor: '#3b82f6',
-  },
   yearOptionText: {
     fontSize: 14,
     color: '#374151',
@@ -541,325 +540,219 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // Period dropdown styles (ADD these to your existing styles object)
-periodDropdownButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#fff',
-  paddingHorizontal: 10,
-  paddingVertical: 5,
-  borderRadius: 6,
-  borderWidth: 1,
-  borderColor: '#e5e7eb',
-  minWidth: 100,
-},
-periodDropdownText: {
-  fontSize: 13,
-  fontWeight: '500',
-  color: '#374151',
-  marginRight: 4,
-},
-yearButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#3b82f6',
-  paddingHorizontal: 8,
-  paddingVertical: 5,
-  borderRadius: 6,
-  minWidth: 40,
-},
-yearButtonText: {
-  fontSize: 13,
-  fontWeight: '600',
-  color: '#fff',
-  marginRight: 4,
-},
-periodPickerDropdown: {
-  position: 'absolute',
-  top: 120,
-  left: '15%',
-  width: '45%',
-  backgroundColor: '#fff',
-  borderRadius: 10,
-  padding: 8,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.15,
-  shadowRadius: 12,
-  elevation: 8,
-  zIndex: 1000,
-  maxHeight: 300,
-},
-periodOption: {
-  paddingVertical: 10,
-  paddingHorizontal: 12,
-  borderRadius: 6,
-  marginBottom: 2,
-},
-periodOptionSelected: {
-  backgroundColor: '#3b82f6',
-},
-periodOptionDisabled: {
-  opacity: 0.5,
-},
-periodOptionText: {
-  fontSize: 13,
-  color: '#374151',
-},
-periodOptionTextSelected: {
-  color: '#fff',
-  fontWeight: '600',
-},
-periodOptionTextDisabled: {
-  color: '#9ca3af',
-},
-yearIndicator: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#3b82f6',
-  paddingHorizontal: 8,
-  paddingVertical: 4,
-  borderRadius: 6,
-  marginLeft: 8,
-},
-yearText: {
-  fontSize: 12,
-  fontWeight: '600',
-  color: '#fff',
-  marginRight: 4,
-},
-// Add these styles to your styles/calendar.js file (merge with existing styles)
+  
+  // Period dropdown styles
+  periodDropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    minWidth: 100,
+  },
+  periodDropdownText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+    marginRight: 4,
+  },
+  yearButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#fff',
+    marginRight: 4,
+  },
+  periodPickerDropdown: {
+    position: 'absolute',
+    top: 120,
+    left: '15%',
+    width: '45%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 1000,
+    maxHeight: 300,
+  },
+  periodOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginBottom: 2,
+  },
+  periodOptionSelected: {
+    backgroundColor: '#3b82f6',
+  },
+  periodOptionDisabled: {
+    opacity: 0.5,
+  },
+  periodOptionText: {
+    fontSize: 13,
+    color: '#374151',
+  },
+  periodOptionTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  periodOptionTextDisabled: {
+    color: '#9ca3af',
+  },
 
-// Period dropdown styles (ADD these to your existing styles object)
-periodDropdownButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#fff',
-  paddingHorizontal: 10,
-  paddingVertical: 5,
-  borderRadius: 6,
-  borderWidth: 1,
-  borderColor: '#e5e7eb',
-  minWidth: 100,
-},
-periodDropdownText: {
-  fontSize: 13,
-  fontWeight: '500',
-  color: '#374151',
-  marginRight: 4,
-},
-yearButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#3b82f6',
-  paddingHorizontal: 8,
-  paddingVertical: 5,
-  borderRadius: 6,
-  minWidth: 40,
-},
-yearButtonText: {
-  fontSize: 13,
-  fontWeight: '600',
-  color: '#fff',
-  marginRight: 4,
-},
-periodPickerDropdown: {
-  position: 'absolute',
-  top: 120,
-  left: '15%',
-  width: '70%',
-  backgroundColor: '#fff',
-  borderRadius: 16,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.2,
-  shadowRadius: 16,
-  elevation: 12,
-  maxHeight: 280, // Height for approximately 4.5 items to show scrollability
-  borderWidth: 1,
-  borderColor: '#e5e7eb',
-},
-improvedYearPickerDropdown: {
-  position: 'absolute',
-  top: 120,
-  right: '15%',
-  width: '40%',
-  backgroundColor: '#fff',
-  borderRadius: 16,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.2,
-  shadowRadius: 16,
-  elevation: 12,
-  maxHeight: 280,
-  borderWidth: 1,
-  borderColor: '#e5e7eb',
-},
-dropdownHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-  borderBottomWidth: 1,
-  borderBottomColor: '#f3f4f6',
-  backgroundColor: '#f9fafb',
-  borderTopLeftRadius: 16,
-  borderTopRightRadius: 16,
-},
-dropdownTitle: {
-  fontSize: 14,
-  fontWeight: '600',
-  color: '#374151',
-},
-dropdownIndicator: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 3,
-},
-dropdownIndicatorDot: {
-  width: 4,
-  height: 4,
-  borderRadius: 2,
-  backgroundColor: '#9ca3af',
-},
-fixedDropdownScrollView: {
-  maxHeight: 220, // Height for exactly 4 items
-  paddingHorizontal: 8,
-},
-dropdownScrollView: {
-  maxHeight: 220, // Height for exactly 4 items (55px each)
-  paddingHorizontal: 8,
-},
-dropdownFlatList: {
-  maxHeight: 220, // Height for exactly 4 items (54px each)
-  flexGrow: 0, // Prevents FlatList from expanding
-},
-yearDropdownScrollView: {
-  maxHeight: 220,
-  paddingHorizontal: 8,
-},
-improvedPeriodOption: {
-  marginVertical: 1,
-  marginHorizontal: 8,
-  borderRadius: 12,
-  backgroundColor: '#fff',
-  borderWidth: 1,
-  borderColor: 'transparent',
-},
-improvedPeriodOptionSelected: {
-  backgroundColor: '#eff6ff',
-  borderColor: '#3b82f6',
-  shadowColor: '#3b82f6',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 2,
-},
-improvedPeriodOptionDisabled: {
-  opacity: 0.6,
-  backgroundColor: '#f9fafb',
-},
-improvedYearOption: {
-  marginVertical: 1,
-  marginHorizontal: 8,
-  borderRadius: 12,
-  backgroundColor: '#fff',
-  borderWidth: 1,
-  borderColor: 'transparent',
-},
-improvedYearOptionSelected: {
-  backgroundColor: '#eff6ff',
-  borderColor: '#3b82f6',
-  shadowColor: '#3b82f6',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 2,
-},
-periodOptionContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  minHeight: 50, // Reduced slightly for better fit
-},
-improvedPeriodOptionText: {
-  fontSize: 14,
-  fontWeight: '500',
-  color: '#374151',
-  flex: 1,
-},
-improvedPeriodOptionTextSelected: {
-  color: '#1d4ed8',
-  fontWeight: '600',
-},
-improvedPeriodOptionTextDisabled: {
-  color: '#9ca3af',
-},
-improvedYearOptionText: {
-  fontSize: 14,
-  fontWeight: '500',
-  color: '#374151',
-  flex: 1,
-  textAlign: 'center',
-},
-improvedYearOptionTextSelected: {
-  color: '#1d4ed8',
-  fontWeight: '600',
-},
-selectedIndicator: {
-  marginLeft: 8,
-},
-selectedIndicatorDot: {
-  width: 8,
-  height: 8,
-  borderRadius: 4,
-  backgroundColor: '#3b82f6',
-},
-futureLabel: {
-  fontSize: 11,
-  color: '#9ca3af',
-  fontStyle: 'italic',
-  marginLeft: 8,
-},
-periodOption: {
-  paddingVertical: 10,
-  paddingHorizontal: 12,
-  borderRadius: 6,
-  marginBottom: 2,
-},
-periodOptionSelected: {
-  backgroundColor: '#3b82f6',
-},
-periodOptionDisabled: {
-  opacity: 0.5,
-},
-periodOptionText: {
-  fontSize: 13,
-  color: '#374151',
-},
-periodOptionTextSelected: {
-  color: '#fff',
-  fontWeight: '600',
-},
-periodOptionTextDisabled: {
-  color: '#9ca3af',
-},
-yearIndicator: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#3b82f6',
-  paddingHorizontal: 8,
-  paddingVertical: 4,
-  borderRadius: 6,
-  marginLeft: 8,
-},
-yearText: {
-  fontSize: 12,
-  fontWeight: '600',
-  color: '#fff',
-  marginRight: 4,
-},
+  // MODAL DATE PICKER STYLES
+  dateSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    flex: 1,
+    maxWidth: '70%',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerModal: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    maxHeight: '80%',
+    minHeight: '50%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  modalCloseButton: {
+    padding: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 20,
+  },
+  modalScrollView: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  sectionTitleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  yearGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  yearGridItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  yearGridItemSelected: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#3b82f6',
+  },
+  yearGridText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  yearGridTextSelected: {
+    color: '#1d4ed8',
+    fontWeight: '600',
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  modalOptionSelected: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#3b82f6',
+    borderWidth: 1,
+  },
+  modalOptionDisabled: {
+    opacity: 0.5,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#374151',
+    flex: 1,
+  },
+  modalOptionTextSelected: {
+    color: '#1d4ed8',
+    fontWeight: '600',
+  },
+  modalOptionTextDisabled: {
+    color: '#9ca3af',
+  },
+  selectedCheck: {
+    marginLeft: 12,
+  },
+  futureLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    marginLeft: 12,
+  },
+
+  // FIXED - Integrated year indicator (no blue background)
+  yearIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent', // Changed from blue to transparent
+    paddingHorizontal: 4, // Reduced padding
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  yearText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9ca3af', // Changed from white to gray to match date text
+    marginRight: 4,
+  },
 });

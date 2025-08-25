@@ -1,8 +1,8 @@
 // =====================================
-// components/calendar/WeeklyPieChart.js - FIXED VERSION
+// components/calendar/WeeklyPieChart.js - CLEAN VERSION WITH NO YEAR INDICATOR
 // =====================================
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, TouchableWithoutFeedback, ScrollView, Modal } from 'react-native';
 import Svg, { Path, G, Circle, Text as SvgText, Line, Rect } from 'react-native-svg';
 import Icon from '../common/Icon';
 import { getWeeklyPieData, getMonthlyPieData, getYearlyPieData } from '../../utils/savingsUtils';
@@ -18,10 +18,7 @@ const INNER_RADIUS = RADIUS * 0.6;
 const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, currentYear }) => {
   const [selectedSlice, setSelectedSlice] = useState(null);
   const [chartPeriod, setChartPeriod] = useState('weekly'); // 'weekly', 'monthly', 'yearly'
-  const [showYearPicker, setShowYearPicker] = useState(false);
-  const [showPeriodPicker, setShowPeriodPicker] = useState(false); // ADDED MISSING STATE
-  const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const [showWeekPicker, setShowWeekPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false); // ONLY modal state
   
   // State for navigation
   const [selectedWeek, setSelectedWeek] = useState({ start: weekStart, end: weekEnd });
@@ -31,7 +28,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
   // Update selected week when props change
   useEffect(() => {
     if (weekStart && weekEnd) {
-      // Ensure dates are properly set to start/end of day
       const normalizedStart = new Date(weekStart);
       normalizedStart.setHours(0, 0, 0, 0);
       
@@ -45,7 +41,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
   // Update selected month when week changes
   useEffect(() => {
     if (chartPeriod === 'weekly' && selectedWeek && selectedWeek.start) {
-      // Update selected month based on the week's midpoint
       const midWeek = new Date(selectedWeek.start);
       midWeek.setDate(midWeek.getDate() + 3);
       const weekMonth = midWeek.getMonth();
@@ -58,13 +53,11 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
         setSelectedYear(weekYear);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedWeek, chartPeriod]);
 
-  // Additional useEffect to ensure we have valid dates
+  // Fallback for missing dates
   useEffect(() => {
     if (!selectedWeek.start || !selectedWeek.end) {
-      console.log('WeeklyPieChart - Missing week dates, using current week');
       const today = new Date();
       const currentDay = today.getDay();
       const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
@@ -81,66 +74,9 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
     }
   }, [selectedWeek]);
   
-  // ADDED MISSING FUNCTION: Get weeks in a year
-  const getWeeksInYear = (year) => {
-    const weeks = [];
-    const startDate = new Date(year, 0, 1); // January 1st
-    
-    // Find first Monday of the year
-    let current = new Date(startDate);
-    const day = current.getDay();
-    const diff = current.getDate() - day + (day === 0 ? -6 : 1);
-    current.setDate(diff);
-    current.setHours(0, 0, 0, 0);
-    
-    while (current.getFullYear() <= year) {
-      const weekStart = new Date(current);
-      const weekEnd = new Date(current);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      // Include week if it starts in the target year
-      if (weekStart.getFullYear() === year) {
-        weeks.push({ start: weekStart, end: weekEnd });
-      }
-      
-      // Move to next week
-      current.setDate(current.getDate() + 7);
-      
-      // Break if we've gone past the year
-      if (current.getFullYear() > year) break;
-    }
-    
-    return weeks;
-  };
-  
-  // ADDED MISSING FUNCTION: Get months in a year
-  const getMonthsInYear = () => {
-    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
-                    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-    return months.map((name, index) => ({ month: index, name }));
-  };
-  
-  // ADDED MISSING FUNCTION: Handle period selection
-  const handlePeriodSelect = (period) => {
-    if (chartPeriod === 'weekly') {
-      setSelectedWeek(period);
-    } else if (chartPeriod === 'monthly') {
-      setSelectedMonth(period.month);
-    }
-    setShowPeriodPicker(false);
-    setSelectedSlice(null);
-  };
-  
-  // Navigation functions - FIXED for cross-month navigation
+  // Navigation functions
   const navigatePeriod = (direction) => {
-    setShowYearPicker(false);
-    setShowMonthPicker(false);
-    setShowWeekPicker(false);
-    setShowPeriodPicker(false);
-    
     if (chartPeriod === 'weekly') {
-      // Simple week navigation - just add/subtract 7 days
       const currentStart = new Date(selectedWeek.start);
       const currentEnd = new Date(selectedWeek.end);
       
@@ -155,7 +91,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
         
         setSelectedWeek({ start: newStart, end: newEnd });
         
-        // Update month and year based on new week
         const midWeek = new Date(newStart);
         midWeek.setDate(midWeek.getDate() + 3);
         setSelectedMonth(midWeek.getMonth());
@@ -169,14 +104,12 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
         newEnd.setDate(newEnd.getDate() + 7);
         newEnd.setHours(23, 59, 59, 999);
         
-        // Check if next week is not in future
         const today = new Date();
         today.setHours(23, 59, 59, 999);
         
         if (newStart <= today) {
           setSelectedWeek({ start: newStart, end: newEnd });
           
-          // Update month and year based on new week
           const midWeek = new Date(newStart);
           midWeek.setDate(midWeek.getDate() + 3);
           setSelectedMonth(midWeek.getMonth());
@@ -186,7 +119,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
     } else if (chartPeriod === 'monthly') {
       if (direction === 'prev') {
         if (selectedMonth === 0) {
-          // Go to December of previous year
           if (selectedYear > 2020) {
             setSelectedMonth(11);
             setSelectedYear(selectedYear - 1);
@@ -199,7 +131,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
         const isCurrentYear = selectedYear === currentDate.getFullYear();
         
         if (selectedMonth === 11) {
-          // Go to January of next year
           const nextYear = selectedYear + 1;
           if (nextYear <= currentDate.getFullYear()) {
             setSelectedMonth(0);
@@ -207,7 +138,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
           }
         } else {
           const nextMonth = selectedMonth + 1;
-          // Check if next month is not in future
           if (!isCurrentYear || nextMonth <= currentDate.getMonth()) {
             setSelectedMonth(nextMonth);
           }
@@ -225,18 +155,14 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
     setSelectedSlice(null);
   };
   
-  // Check if can navigate backward - FIXED for cross-month navigation
+  // Check navigation capabilities
   const canNavigateBackward = () => {
     if (chartPeriod === 'weekly') {
-      // Check if previous week exists (not going too far back)
       const prevWeekStart = new Date(selectedWeek.start);
       prevWeekStart.setDate(prevWeekStart.getDate() - 7);
-      
-      // Allow going back to 2020
       const minDate = new Date(2020, 0, 1);
       return prevWeekStart >= minDate;
     } else if (chartPeriod === 'monthly') {
-      // Can go back if not at January 2020
       return !(selectedMonth === 0 && selectedYear === 2020);
     } else if (chartPeriod === 'yearly') {
       return selectedYear > 2020;
@@ -244,19 +170,16 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
     return false;
   };
   
-  // Check if can navigate forward - FIXED for cross-month navigation
   const canNavigateForward = () => {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
     
     if (chartPeriod === 'weekly') {
-      // Instead of just checking current month, check if next week exists in any future month
       const currentWeekEnd = new Date(selectedWeek.end);
       const nextWeekStart = new Date(currentWeekEnd);
       nextWeekStart.setDate(nextWeekStart.getDate() + 1);
       nextWeekStart.setHours(0, 0, 0, 0);
       
-      // Can navigate forward if next week start is not in the future
       return nextWeekStart <= today;
     } else if (chartPeriod === 'monthly') {
       const currentDate = new Date();
@@ -291,12 +214,11 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
   const pieData = getPieData();
   const totalSavings = pieData.reduce((sum, item) => sum + item.amount, 0);
   
-  // Handle single item display
   const displayData = pieData.length === 1 
     ? [{ ...pieData[0], forceFullCircle: true }]
     : pieData;
   
-  // Format date range based on period (always with years)
+  // CLEAN Format date range - no year indicator
   const formatDateRange = () => {
     const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
                     'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -312,67 +234,93 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
       default:
         const startDay = selectedWeek.start.getDate();
         const startMonth = selectedWeek.start.getMonth();
-        const startYear = selectedWeek.start.getFullYear().toString().slice(-2);
         const endDay = selectedWeek.end.getDate();
         const endMonth = selectedWeek.end.getMonth();
-        const endYear = selectedWeek.end.getFullYear().toString().slice(-2);
         
-        // Always show years for clarity
-        if (startMonth === endMonth && startYear === endYear) {
-          // Same month and year: "18-24 Ağu 25"
-          return `${startDay}-${endDay} ${monthsShort[startMonth]} ${startYear}`;
-        } else if (startYear === endYear) {
-          // Different months, same year: "28 Tem - 3 Ağu 25"
-          return `${startDay} ${monthsShort[startMonth]} - ${endDay} ${monthsShort[endMonth]} ${endYear}`;
+        if (startMonth === endMonth) {
+          return `${startDay}-${endDay} ${monthsShort[startMonth]}`;
         } else {
-          // Different years: "30 Ara 24 - 5 Oca 25"
-          return `${startDay} ${monthsShort[startMonth]} ${startYear} - ${endDay} ${monthsShort[endMonth]} ${endYear}`;
+          return `${startDay} ${monthsShort[startMonth]} - ${endDay} ${monthsShort[endMonth]}`;
         }
     }
   };
   
-  // Get weeks in a specific month
-  const getWeeksInMonth = (month, year) => {
+  // Get chart title
+  const getChartTitle = () => {
+    switch(chartPeriod) {
+      case 'monthly':
+        return 'Aylık Özet';
+      case 'yearly':
+        return 'Yıllık Özet';
+      case 'weekly':
+      default:
+        return 'Haftalık Özet';
+    }
+  };
+  
+  // Modal functions
+  const openDatePicker = () => setShowDatePicker(true);
+  const closeDatePicker = () => setShowDatePicker(false);
+  
+  // Helper functions for modal
+  const getWeeksInYear = (year) => {
     const weeks = [];
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(year, 0, 1);
     
-    // Start from the first day of the month
-    let current = new Date(firstDay);
+    let current = new Date(startDate);
+    const day = current.getDay();
+    const diff = current.getDate() - day + (day === 0 ? -6 : 1);
+    current.setDate(diff);
+    current.setHours(0, 0, 0, 0);
     
-    while (current <= lastDay) {
-      // Find Monday of this week
+    while (current.getFullYear() <= year) {
       const weekStart = new Date(current);
-      const day = weekStart.getDay();
-      const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1);
-      weekStart.setDate(diff);
-      weekStart.setHours(0, 0, 0, 0);
-      
-      // Find Sunday of this week
-      const weekEnd = new Date(weekStart);
+      const weekEnd = new Date(current);
       weekEnd.setDate(weekEnd.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
       
-      // Include week if it has at least one day in the target month
-      if ((weekStart.getMonth() === month && weekStart.getFullYear() === year) ||
-          (weekEnd.getMonth() === month && weekEnd.getFullYear() === year) ||
-          (weekStart.getMonth() < month && weekEnd.getMonth() > month)) {
-        
-        // Check if this week is not already added
-        const exists = weeks.some(w => w.start.getTime() === weekStart.getTime());
-        if (!exists) {
-          weeks.push({ start: weekStart, end: weekEnd });
-        }
+      if (weekStart.getFullYear() === year) {
+        weeks.push({ start: weekStart, end: weekEnd });
       }
       
-      // Move to next week
       current.setDate(current.getDate() + 7);
+      if (current.getFullYear() > year) break;
     }
     
     return weeks;
   };
   
-  // Format week for dropdown display (with years when needed)
+  const getMonthsInYear = () => {
+    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
+                    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    return months.map((name, index) => ({ month: index, name }));
+  };
+  
+  const getAvailableYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    
+    let earliestYear = currentYear;
+    Object.keys(dailySavings).forEach(dateStr => {
+      if (!dateStr.includes('_removed')) {
+        const year = parseInt(dateStr.split('-')[0]);
+        if (year < earliestYear && year > 2000) {
+          earliestYear = year;
+        }
+      }
+    });
+    
+    if (earliestYear === currentYear || Object.keys(dailySavings).length === 0) {
+      earliestYear = Math.max(2020, currentYear - 5);
+    }
+    
+    for (let year = earliestYear; year <= currentYear; year++) {
+      years.push(year);
+    }
+    
+    return years.reverse();
+  };
+  
   const formatWeekForDropdown = (week) => {
     const monthsShort = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 
                          'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
@@ -393,140 +341,43 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
     }
   };
   
-  // Handle week selection
-  const handleWeekSelect = (week) => {
-    setSelectedWeek(week);
-    setShowWeekPicker(false);
-    setShowPeriodPicker(false); // ADDED
-    setSelectedSlice(null);
-  };
-  
-  // Handle month selection
-  const handleMonthSelect = (month) => {
-    setSelectedMonth(month);
-    
-    if (chartPeriod === 'weekly') {
-      // Find first week of the selected month
-      const weeksInMonth = getWeeksInMonth(month, selectedYear);
-      if (weeksInMonth.length > 0) {
-        setSelectedWeek(weeksInMonth[0]);
-      }
-    }
-    
-    setShowMonthPicker(false);
-    setShowPeriodPicker(false); // ADDED
-    setSelectedSlice(null);
-  };
-  
-  // Handle year selection
-  const handleYearSelect = (year) => {
-    setSelectedYear(year);
-    
-    if (chartPeriod === 'weekly') {
-      // Jump to first week of January in the selected year
-      const firstWeek = new Date(year, 0, 1);
-      const dayOfWeek = firstWeek.getDay();
-      const diff = firstWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-      firstWeek.setDate(diff);
-      firstWeek.setHours(0, 0, 0, 0);
-      
-      const endOfWeek = new Date(firstWeek);
-      endOfWeek.setDate(endOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
-      
-      setSelectedWeek({ start: firstWeek, end: endOfWeek });
-      setSelectedMonth(0); // January
-    } else if (chartPeriod === 'monthly') {
-      // Check if current month is valid for the selected year
-      const currentDate = new Date();
-      if (year === currentDate.getFullYear() && selectedMonth > currentDate.getMonth()) {
-        setSelectedMonth(currentDate.getMonth());
-      }
-    }
-    
-    setShowYearPicker(false);
-    setShowPeriodPicker(false); // ADDED
-    setSelectedSlice(null);
-  };
-  
-  // Get all months
-  const getAllMonths = () => {
-    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
-                    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-    return months.map((name, index) => ({ month: index, name }));
-  };
-  
-  // Handle year change for weekly/monthly views
-  const handleYearChange = (year) => {
-    if (chartPeriod === 'weekly') {
-      // Update week to first week of selected year
-      const firstWeek = new Date(year, 0, 1); // January 1st
-      const dayOfWeek = firstWeek.getDay();
-      const diff = firstWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-      firstWeek.setDate(diff);
-      firstWeek.setHours(0, 0, 0, 0);
-      
-      const endOfWeek = new Date(firstWeek);
-      endOfWeek.setDate(endOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
-      
-      setSelectedWeek({ start: firstWeek, end: endOfWeek });
-    } else if (chartPeriod === 'monthly') {
-      setSelectedYear(year);
-      // If current month doesn't exist in the selected year (future month), reset to latest available
-      const currentDate = new Date();
-      if (year === currentDate.getFullYear() && selectedMonth > currentDate.getMonth()) {
-        setSelectedMonth(currentDate.getMonth());
-      }
-    }
-    setShowYearPicker(false);
-    setShowPeriodPicker(false); // ADDED
-    setSelectedSlice(null);
-  };
-  
-  // Get available years (from first saving to current year)
-  const getAvailableYears = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    
-    // Get earliest year from savings data
-    let earliestYear = currentYear;
-    Object.keys(dailySavings).forEach(dateStr => {
-      if (!dateStr.includes('_removed')) {
-        const year = parseInt(dateStr.split('-')[0]);
-        if (year < earliestYear && year > 2000) { // Sanity check for valid years
-          earliestYear = year;
+  const handleDateSelection = (type, value) => {
+    if (type === 'week') {
+      setSelectedWeek(value);
+      const midWeek = new Date(value.start);
+      midWeek.setDate(midWeek.getDate() + 3);
+      setSelectedMonth(midWeek.getMonth());
+      setSelectedYear(midWeek.getFullYear());
+    } else if (type === 'month') {
+      setSelectedMonth(value);
+    } else if (type === 'year') {
+      setSelectedYear(value);
+      if (chartPeriod === 'weekly') {
+        const firstWeek = new Date(value, 0, 1);
+        const dayOfWeek = firstWeek.getDay();
+        const diff = firstWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        firstWeek.setDate(diff);
+        firstWeek.setHours(0, 0, 0, 0);
+        
+        const endOfWeek = new Date(firstWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        
+        setSelectedWeek({ start: firstWeek, end: endOfWeek });
+        setSelectedMonth(0);
+      } else if (chartPeriod === 'monthly') {
+        const currentDate = new Date();
+        if (value === currentDate.getFullYear() && selectedMonth > currentDate.getMonth()) {
+          setSelectedMonth(currentDate.getMonth());
         }
       }
-    });
-    
-    // If no savings or all future dates, use a reasonable minimum
-    if (earliestYear === currentYear || Object.keys(dailySavings).length === 0) {
-      earliestYear = Math.max(2020, currentYear - 5); // Go back max 5 years or to 2020
     }
     
-    // Create array from earliest year to current year
-    for (let year = earliestYear; year <= currentYear; year++) {
-      years.push(year);
-    }
-    
-    return years.reverse(); // Show newest first
+    setSelectedSlice(null);
+    closeDatePicker();
   };
   
-  // Get chart title based on period
-  const getChartTitle = () => {
-    switch(chartPeriod) {
-      case 'monthly':
-        return 'Aylık Özet';
-      case 'yearly':
-        return 'Yıllık Özet';
-      case 'weekly':
-      default:
-        return 'Haftalık Özet';
-    }
-  };
-  
-  // Calculate pie slices
+  // Pie chart creation
   const createPieSlices = () => {
     if (totalSavings === 0) return [];
     
@@ -670,6 +521,7 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
     }
   };
   
+  // Empty state
   if (totalSavings === 0) {
     return (
       <View style={styles.weeklyChartContainer}>
@@ -679,11 +531,7 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
             <View style={styles.chartViewSelector}>
               <TouchableOpacity
                 style={[styles.chartViewButton, chartPeriod === 'weekly' && styles.activeChartView]}
-                onPress={() => {
-                  setChartPeriod('weekly');
-                  setShowYearPicker(false);
-                  setShowPeriodPicker(false);
-                }}
+                onPress={() => setChartPeriod('weekly')}
               >
                 <Text style={[styles.chartViewText, chartPeriod === 'weekly' && styles.activeChartViewText]}>
                   H
@@ -691,11 +539,7 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.chartViewButton, chartPeriod === 'monthly' && styles.activeChartView]}
-                onPress={() => {
-                  setChartPeriod('monthly');
-                  setShowYearPicker(false);
-                  setShowPeriodPicker(false);
-                }}
+                onPress={() => setChartPeriod('monthly')}
               >
                 <Text style={[styles.chartViewText, chartPeriod === 'monthly' && styles.activeChartViewText]}>
                   A
@@ -703,11 +547,7 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.chartViewButton, chartPeriod === 'yearly' && styles.activeChartView]}
-                onPress={() => {
-                  setChartPeriod('yearly');
-                  setShowYearPicker(false);
-                  setShowPeriodPicker(false);
-                }}
+                onPress={() => setChartPeriod('yearly')}
               >
                 <Text style={[styles.chartViewText, chartPeriod === 'yearly' && styles.activeChartViewText]}>
                   Y
@@ -716,7 +556,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
             </View>
           </View>
           
-          {/* Period Navigation */}
           <View style={styles.periodNavigator}>
             <TouchableOpacity
               style={[styles.navButton, !canNavigateBackward() && styles.navButtonDisabled]}
@@ -726,24 +565,9 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
               <Icon name="chevron-back" size={20} color={canNavigateBackward() ? "#666" : "#ccc"} />
             </TouchableOpacity>
             
-            <View style={styles.periodDisplay}>
+            <TouchableOpacity style={styles.dateSelector} onPress={openDatePicker}>
               <Text style={styles.weeklyChartDate}>{formatDateRange()}</Text>
-              {chartPeriod !== 'yearly' && (
-                <TouchableOpacity 
-                  style={styles.yearIndicator}
-                  onPress={() => setShowYearPicker(true)}
-                >
-                  <Text style={styles.yearText}>
-                    {chartPeriod === 'weekly' ? 
-                      (selectedWeek.start.getFullYear() === selectedWeek.end.getFullYear() ? 
-                        selectedWeek.start.getFullYear() : 
-                        `${selectedWeek.start.getFullYear()}-${selectedWeek.end.getFullYear()}`) 
-                      : selectedYear}
-                  </Text>
-                  <Icon name="chevron-down" size={16} color="#6b7280" />
-                </TouchableOpacity>
-              )}
-            </View>
+            </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.navButton, !canNavigateForward() && styles.navButtonDisabled]}
@@ -761,42 +585,182 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
           </Text>
         </View>
         
-        {/* Year Picker Dropdown for Empty State */}
-        {showYearPicker && chartPeriod !== 'yearly' && (
-          <>
-            <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
-              <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 999,
-              }} />
-            </TouchableWithoutFeedback>
-            <ScrollView style={styles.yearPickerDropdown} showsVerticalScrollIndicator={false}>
-              {getAvailableYears().map(year => (
-                <TouchableOpacity
-                  key={year}
-                  style={[
-                    styles.yearOption,
-                    ((chartPeriod === 'weekly' && year === selectedWeek.start.getFullYear()) ||
-                     (chartPeriod === 'monthly' && year === selectedYear)) && styles.yearOptionSelected
-                  ]}
-                  onPress={() => handleYearChange(year)}
-                >
-                  <Text style={[
-                    styles.yearOptionText,
-                    ((chartPeriod === 'weekly' && year === selectedWeek.start.getFullYear()) ||
-                     (chartPeriod === 'monthly' && year === selectedYear)) && styles.yearOptionTextSelected
-                  ]}>
-                    {year}
-                  </Text>
+        {/* DATE PICKER MODAL */}
+        <Modal
+          visible={showDatePicker}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={closeDatePicker}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.datePickerModal}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {chartPeriod === 'yearly' ? 'Yıl Seçin' : chartPeriod === 'monthly' ? 'Ay ve Yıl Seçin' : 'Hafta ve Yıl Seçin'}
+                </Text>
+                <TouchableOpacity onPress={closeDatePicker} style={styles.modalCloseButton}>
+                  <Icon name="close" size={24} color="#666" />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </>
-        )}
+              </View>
+              
+              {chartPeriod === 'yearly' ? (
+                <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                  <View style={styles.sectionTitle}>
+                    <Text style={styles.sectionTitleText}>Yıl</Text>
+                  </View>
+                  {getAvailableYears().map(year => (
+                    <TouchableOpacity
+                      key={year}
+                      style={[
+                        styles.modalOption,
+                        year === selectedYear && styles.modalOptionSelected
+                      ]}
+                      onPress={() => handleDateSelection('year', year)}
+                    >
+                      <Text style={[
+                        styles.modalOptionText,
+                        year === selectedYear && styles.modalOptionTextSelected
+                      ]}>
+                        {year}
+                      </Text>
+                      {year === selectedYear && (
+                        <View style={styles.selectedCheck}>
+                          <Icon name="checkmark" size={20} color="#3b82f6" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : chartPeriod === 'monthly' ? (
+                <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                  <View style={styles.sectionTitle}>
+                    <Text style={styles.sectionTitleText}>Yıl</Text>
+                  </View>
+                  <View style={styles.yearGrid}>
+                    {getAvailableYears().map(year => (
+                      <TouchableOpacity
+                        key={year}
+                        style={[
+                          styles.yearGridItem,
+                          year === selectedYear && styles.yearGridItemSelected
+                        ]}
+                        onPress={() => handleDateSelection('year', year)}
+                      >
+                        <Text style={[
+                          styles.yearGridText,
+                          year === selectedYear && styles.yearGridTextSelected
+                        ]}>
+                          {year}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  
+                  <View style={styles.sectionTitle}>
+                    <Text style={styles.sectionTitleText}>{selectedYear} Yılı Ayları</Text>
+                  </View>
+                  {getMonthsInYear().map((month) => {
+                    const isSelected = month.month === selectedMonth;
+                    const currentDate = new Date();
+                    const isFuture = selectedYear === currentDate.getFullYear() && 
+                                    month.month > currentDate.getMonth();
+                    
+                    return (
+                      <TouchableOpacity
+                        key={month.month}
+                        style={[
+                          styles.modalOption,
+                          isSelected && styles.modalOptionSelected,
+                          isFuture && styles.modalOptionDisabled
+                        ]}
+                        onPress={() => !isFuture && handleDateSelection('month', month.month)}
+                        disabled={isFuture}
+                      >
+                        <Text style={[
+                          styles.modalOptionText,
+                          isSelected && styles.modalOptionTextSelected,
+                          isFuture && styles.modalOptionTextDisabled
+                        ]}>
+                          {month.name}
+                        </Text>
+                        {isSelected && (
+                          <View style={styles.selectedCheck}>
+                            <Icon name="checkmark" size={20} color="#3b82f6" />
+                          </View>
+                        )}
+                        {isFuture && (
+                          <Text style={styles.futureLabel}>Gelecek</Text>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              ) : (
+                <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                  <View style={styles.sectionTitle}>
+                    <Text style={styles.sectionTitleText}>Yıl</Text>
+                  </View>
+                  <View style={styles.yearGrid}>
+                    {getAvailableYears().map(year => (
+                      <TouchableOpacity
+                        key={year}
+                        style={[
+                          styles.yearGridItem,
+                          year === selectedWeek.start.getFullYear() && styles.yearGridItemSelected
+                        ]}
+                        onPress={() => handleDateSelection('year', year)}
+                      >
+                        <Text style={[
+                          styles.yearGridText,
+                          year === selectedWeek.start.getFullYear() && styles.yearGridTextSelected
+                        ]}>
+                          {year}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  
+                  <View style={styles.sectionTitle}>
+                    <Text style={styles.sectionTitleText}>{selectedWeek.start.getFullYear()} Yılı Haftaları</Text>
+                  </View>
+                  {getWeeksInYear(selectedWeek.start.getFullYear()).map((week, index) => {
+                    const isSelected = week.start.getTime() === selectedWeek.start.getTime();
+                    const isFuture = week.start > new Date();
+                    
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.modalOption,
+                          isSelected && styles.modalOptionSelected,
+                          isFuture && styles.modalOptionDisabled
+                        ]}
+                        onPress={() => !isFuture && handleDateSelection('week', week)}
+                        disabled={isFuture}
+                      >
+                        <Text style={[
+                          styles.modalOptionText,
+                          isSelected && styles.modalOptionTextSelected,
+                          isFuture && styles.modalOptionTextDisabled
+                        ]}>
+                          {formatWeekForDropdown(week)}
+                        </Text>
+                        {isSelected && (
+                          <View style={styles.selectedCheck}>
+                            <Icon name="checkmark" size={20} color="#3b82f6" />
+                          </View>
+                        )}
+                        {isFuture && (
+                          <Text style={styles.futureLabel}>Gelecek</Text>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -809,13 +773,7 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
           <View style={styles.chartViewSelector}>
             <TouchableOpacity
               style={[styles.chartViewButton, chartPeriod === 'weekly' && styles.activeChartView]}
-              onPress={() => {
-                setChartPeriod('weekly');
-                setShowYearPicker(false);
-                setShowMonthPicker(false);
-                setShowWeekPicker(false);
-                setShowPeriodPicker(false);
-              }}
+              onPress={() => setChartPeriod('weekly')}
             >
               <Text style={[styles.chartViewText, chartPeriod === 'weekly' && styles.activeChartViewText]}>
                 H
@@ -823,13 +781,7 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.chartViewButton, chartPeriod === 'monthly' && styles.activeChartView]}
-              onPress={() => {
-                setChartPeriod('monthly');
-                setShowYearPicker(false);
-                setShowMonthPicker(false);
-                setShowWeekPicker(false);
-                setShowPeriodPicker(false);
-              }}
+              onPress={() => setChartPeriod('monthly')}
             >
               <Text style={[styles.chartViewText, chartPeriod === 'monthly' && styles.activeChartViewText]}>
                 A
@@ -837,13 +789,7 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.chartViewButton, chartPeriod === 'yearly' && styles.activeChartView]}
-              onPress={() => {
-                setChartPeriod('yearly');
-                setShowYearPicker(false);
-                setShowMonthPicker(false);
-                setShowWeekPicker(false);
-                setShowPeriodPicker(false);
-              }}
+              onPress={() => setChartPeriod('yearly')}
             >
               <Text style={[styles.chartViewText, chartPeriod === 'yearly' && styles.activeChartViewText]}>
                 Y
@@ -852,7 +798,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
           </View>
         </View>
         
-        {/* Period Navigation */}
         <View style={styles.periodNavigator}>
           <TouchableOpacity
             style={[styles.navButton, !canNavigateBackward() && styles.navButtonDisabled]}
@@ -862,43 +807,9 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
             <Icon name="chevron-back" size={20} color={canNavigateBackward() ? "#666" : "#ccc"} />
           </TouchableOpacity>
           
-          <View style={styles.periodDisplay}>
-            {chartPeriod !== 'yearly' ? (
-              <>
-                {/* Period Dropdown (weeks/months) */}
-                <TouchableOpacity 
-                  style={styles.periodDropdownButton}
-                  onPress={() => {
-                    setShowPeriodPicker(!showPeriodPicker);
-                    setShowYearPicker(false);
-                  }}
-                >
-                  <Text style={styles.periodDropdownText}>{formatDateRange()}</Text>
-                  <Icon name="chevron-down" size={14} color="#374151" />
-                </TouchableOpacity>
-                
-                {/* Year Dropdown */}
-                <TouchableOpacity 
-                  style={styles.yearButton}
-                  onPress={() => {
-                    setShowYearPicker(!showYearPicker);
-                    setShowPeriodPicker(false);
-                  }}
-                >
-                  <Text style={styles.yearButtonText}>
-                    {chartPeriod === 'weekly' ? 
-                      (selectedWeek.start.getFullYear() === selectedWeek.end.getFullYear() ? 
-                        selectedWeek.start.getFullYear().toString().slice(-2) : 
-                        `${selectedWeek.start.getFullYear().toString().slice(-2)}-${selectedWeek.end.getFullYear().toString().slice(-2)}`) 
-                      : selectedYear.toString().slice(-2)}
-                  </Text>
-                  <Icon name="chevron-down" size={14} color="#6b7280" />
-                </TouchableOpacity>
-              </>
-            ) : (
-              <Text style={styles.weeklyChartDate}>{formatDateRange()}</Text>
-            )}
-          </View>
+          <TouchableOpacity style={styles.dateSelector} onPress={openDatePicker}>
+            <Text style={styles.weeklyChartDate}>{formatDateRange()}</Text>
+          </TouchableOpacity>
           
           <TouchableOpacity
             style={[styles.navButton, !canNavigateForward() && styles.navButtonDisabled]}
@@ -908,191 +819,6 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
             <Icon name="chevron-forward" size={20} color={canNavigateForward() ? "#666" : "#ccc"} />
           </TouchableOpacity>
         </View>
-        
-        {/* Period Picker Dropdown - FIXED SCROLL WITHOUT FLATLIST */}
-        {showPeriodPicker && chartPeriod !== 'yearly' && (
-          <>
-            <TouchableWithoutFeedback onPress={() => setShowPeriodPicker(false)}>
-              <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 997,
-              }} />
-            </TouchableWithoutFeedback>
-            <View style={[styles.periodPickerDropdown, { zIndex: 999 }]} pointerEvents="box-none">
-              {/* Dropdown header */}
-              <View style={styles.dropdownHeader} pointerEvents="none">
-                <Text style={styles.dropdownTitle}>
-                  {chartPeriod === 'weekly' ? `${selectedYear} Yılı Haftaları` : `${selectedYear} Yılı Ayları`}
-                </Text>
-                <View style={styles.dropdownIndicator}>
-                  <View style={styles.dropdownIndicatorDot} />
-                  <View style={styles.dropdownIndicatorDot} />
-                  <View style={styles.dropdownIndicatorDot} />
-                </View>
-              </View>
-              
-              <ScrollView 
-                style={styles.fixedDropdownScrollView}
-                showsVerticalScrollIndicator={true}
-                scrollIndicatorInsets={{ right: 4 }}
-                contentContainerStyle={{ paddingVertical: 8 }}
-                nestedScrollEnabled={true}
-                keyboardShouldPersistTaps="handled"
-                bounces={true}
-                removeClippedSubviews={false}
-                pointerEvents="auto"
-              >
-                {chartPeriod === 'weekly' ? (
-                  getWeeksInYear(selectedWeek.start.getFullYear()).map((week, index) => {
-                    const isSelected = week.start.getTime() === selectedWeek.start.getTime();
-                    const isFuture = week.start > new Date();
-                    
-                    return (
-                      <TouchableOpacity
-                        key={`week-${week.start.getTime()}`}
-                        style={[
-                          styles.improvedPeriodOption,
-                          isSelected && styles.improvedPeriodOptionSelected,
-                          isFuture && styles.improvedPeriodOptionDisabled
-                        ]}
-                        onPress={() => !isFuture && handlePeriodSelect(week)}
-                        disabled={isFuture}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.periodOptionContent}>
-                          <Text style={[
-                            styles.improvedPeriodOptionText,
-                            isSelected && styles.improvedPeriodOptionTextSelected,
-                            isFuture && styles.improvedPeriodOptionTextDisabled
-                          ]}>
-                            {formatWeekForDropdown(week)}
-                          </Text>
-                          {isSelected && (
-                            <View style={styles.selectedIndicator}>
-                              <View style={styles.selectedIndicatorDot} />
-                            </View>
-                          )}
-                          {isFuture && (
-                            <Text style={styles.futureLabel}>Gelecek</Text>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })
-                ) : (
-                  getMonthsInYear().map((month) => {
-                    const isSelected = month.month === selectedMonth;
-                    const currentDate = new Date();
-                    const isFuture = selectedYear === currentDate.getFullYear() && 
-                                    month.month > currentDate.getMonth();
-                    
-                    return (
-                      <TouchableOpacity
-                        key={`month-${month.month}`}
-                        style={[
-                          styles.improvedPeriodOption,
-                          isSelected && styles.improvedPeriodOptionSelected,
-                          isFuture && styles.improvedPeriodOptionDisabled
-                        ]}
-                        onPress={() => !isFuture && handlePeriodSelect(month)}
-                        disabled={isFuture}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.periodOptionContent}>
-                          <Text style={[
-                            styles.improvedPeriodOptionText,
-                            isSelected && styles.improvedPeriodOptionTextSelected,
-                            isFuture && styles.improvedPeriodOptionTextDisabled
-                          ]}>
-                            {month.name}
-                          </Text>
-                          {isSelected && (
-                            <View style={styles.selectedIndicator}>
-                              <View style={styles.selectedIndicatorDot} />
-                            </View>
-                          )}
-                          {isFuture && (
-                            <Text style={styles.futureLabel}>Gelecek</Text>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
-              </ScrollView>
-            </View>
-          </>
-        )}
-        
-        {/* Year Picker Dropdown - FIXED SCROLL WITHOUT FLATLIST */}
-        {showYearPicker && chartPeriod !== 'yearly' && (
-          <>
-            <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
-              <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 997,
-              }} />
-            </TouchableWithoutFeedback>
-            <View style={[styles.improvedYearPickerDropdown, { zIndex: 999 }]} pointerEvents="box-none">
-              <View style={styles.dropdownHeader} pointerEvents="none">
-                <Text style={styles.dropdownTitle}>Yıl Seçin</Text>
-                <View style={styles.dropdownIndicator}>
-                  <View style={styles.dropdownIndicatorDot} />
-                  <View style={styles.dropdownIndicatorDot} />
-                  <View style={styles.dropdownIndicatorDot} />
-                </View>
-              </View>
-              <ScrollView 
-                style={styles.fixedDropdownScrollView}
-                showsVerticalScrollIndicator={true}
-                scrollIndicatorInsets={{ right: 4 }}
-                contentContainerStyle={{ paddingVertical: 8 }}
-                nestedScrollEnabled={true}
-                keyboardShouldPersistTaps="handled"
-                bounces={true}
-                removeClippedSubviews={false}
-                pointerEvents="auto"
-              >
-                {getAvailableYears().map(year => (
-                  <TouchableOpacity
-                    key={`year-${year}`}
-                    style={[
-                      styles.improvedYearOption,
-                      ((chartPeriod === 'weekly' && year === selectedWeek.start.getFullYear()) ||
-                       (chartPeriod === 'monthly' && year === selectedYear)) && styles.improvedYearOptionSelected
-                    ]}
-                    onPress={() => handleYearChange(year)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.periodOptionContent}>
-                      <Text style={[
-                        styles.improvedYearOptionText,
-                        ((chartPeriod === 'weekly' && year === selectedWeek.start.getFullYear()) ||
-                         (chartPeriod === 'monthly' && year === selectedYear)) && styles.improvedYearOptionTextSelected
-                      ]}>
-                        {year}
-                      </Text>
-                      {((chartPeriod === 'weekly' && year === selectedWeek.start.getFullYear()) ||
-                        (chartPeriod === 'monthly' && year === selectedYear)) && (
-                        <View style={styles.selectedIndicator}>
-                          <View style={styles.selectedIndicatorDot} />
-                        </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </>
-        )}
         
         <Text style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, textAlign: 'center' }}>
           Detaylar için butona dokunun
@@ -1272,6 +998,183 @@ const WeeklyPieChart = ({ dailySavings, weekStart, weekEnd, currentMonth, curren
           ))}
         </View>
       )}
+      
+      {/* DATE PICKER MODAL */}
+      <Modal
+        visible={showDatePicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeDatePicker}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.datePickerModal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {chartPeriod === 'yearly' ? 'Yıl Seçin' : chartPeriod === 'monthly' ? 'Ay ve Yıl Seçin' : 'Hafta ve Yıl Seçin'}
+              </Text>
+              <TouchableOpacity onPress={closeDatePicker} style={styles.modalCloseButton}>
+                <Icon name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            {chartPeriod === 'yearly' ? (
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.sectionTitle}>
+                  <Text style={styles.sectionTitleText}>Yıl</Text>
+                </View>
+                {getAvailableYears().map(year => (
+                  <TouchableOpacity
+                    key={year}
+                    style={[
+                      styles.modalOption,
+                      year === selectedYear && styles.modalOptionSelected
+                    ]}
+                    onPress={() => handleDateSelection('year', year)}
+                  >
+                    <Text style={[
+                      styles.modalOptionText,
+                      year === selectedYear && styles.modalOptionTextSelected
+                    ]}>
+                      {year}
+                    </Text>
+                    {year === selectedYear && (
+                      <View style={styles.selectedCheck}>
+                        <Icon name="checkmark" size={20} color="#3b82f6" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : chartPeriod === 'monthly' ? (
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.sectionTitle}>
+                  <Text style={styles.sectionTitleText}>Yıl</Text>
+                </View>
+                <View style={styles.yearGrid}>
+                  {getAvailableYears().map(year => (
+                    <TouchableOpacity
+                      key={year}
+                      style={[
+                        styles.yearGridItem,
+                        year === selectedYear && styles.yearGridItemSelected
+                      ]}
+                      onPress={() => handleDateSelection('year', year)}
+                    >
+                      <Text style={[
+                        styles.yearGridText,
+                        year === selectedYear && styles.yearGridTextSelected
+                      ]}>
+                        {year}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                
+                <View style={styles.sectionTitle}>
+                  <Text style={styles.sectionTitleText}>{selectedYear} Yılı Ayları</Text>
+                </View>
+                {getMonthsInYear().map((month) => {
+                  const isSelected = month.month === selectedMonth;
+                  const currentDate = new Date();
+                  const isFuture = selectedYear === currentDate.getFullYear() && 
+                                  month.month > currentDate.getMonth();
+                  
+                  return (
+                    <TouchableOpacity
+                      key={month.month}
+                      style={[
+                        styles.modalOption,
+                        isSelected && styles.modalOptionSelected,
+                        isFuture && styles.modalOptionDisabled
+                      ]}
+                      onPress={() => !isFuture && handleDateSelection('month', month.month)}
+                      disabled={isFuture}
+                    >
+                      <Text style={[
+                        styles.modalOptionText,
+                        isSelected && styles.modalOptionTextSelected,
+                        isFuture && styles.modalOptionTextDisabled
+                      ]}>
+                        {month.name}
+                      </Text>
+                      {isSelected && (
+                        <View style={styles.selectedCheck}>
+                          <Icon name="checkmark" size={20} color="#3b82f6" />
+                        </View>
+                      )}
+                      {isFuture && (
+                        <Text style={styles.futureLabel}>Gelecek</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            ) : (
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.sectionTitle}>
+                  <Text style={styles.sectionTitleText}>Yıl</Text>
+                </View>
+                <View style={styles.yearGrid}>
+                  {getAvailableYears().map(year => (
+                    <TouchableOpacity
+                      key={year}
+                      style={[
+                        styles.yearGridItem,
+                        year === selectedWeek.start.getFullYear() && styles.yearGridItemSelected
+                      ]}
+                      onPress={() => handleDateSelection('year', year)}
+                    >
+                      <Text style={[
+                        styles.yearGridText,
+                        year === selectedWeek.start.getFullYear() && styles.yearGridTextSelected
+                      ]}>
+                        {year}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                
+                <View style={styles.sectionTitle}>
+                  <Text style={styles.sectionTitleText}>{selectedWeek.start.getFullYear()} Yılı Haftaları</Text>
+                </View>
+                {getWeeksInYear(selectedWeek.start.getFullYear()).map((week, index) => {
+                  const isSelected = week.start.getTime() === selectedWeek.start.getTime();
+                  const isFuture = week.start > new Date();
+                  
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.modalOption,
+                        isSelected && styles.modalOptionSelected,
+                        isFuture && styles.modalOptionDisabled
+                      ]}
+                      onPress={() => !isFuture && handleDateSelection('week', week)}
+                      disabled={isFuture}
+                    >
+                      <Text style={[
+                        styles.modalOptionText,
+                        isSelected && styles.modalOptionTextSelected,
+                        isFuture && styles.modalOptionTextDisabled
+                      ]}>
+                        {formatWeekForDropdown(week)}
+                      </Text>
+                      {isSelected && (
+                        <View style={styles.selectedCheck}>
+                          <Icon name="checkmark" size={20} color="#3b82f6" />
+                        </View>
+                      )}
+                      {isFuture && (
+                        <Text style={styles.futureLabel}>Gelecek</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
