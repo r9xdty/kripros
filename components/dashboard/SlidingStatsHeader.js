@@ -1,5 +1,5 @@
 // =====================================
-// components/dashboard/StatsHeader.js - WITH SLIDING FUNCTIONALITY ADDED
+// components/dashboard/SlidingStatsHeader.js - FINAL VERSION WITH WORKING BUTTONS
 // =====================================
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
@@ -8,47 +8,47 @@ import { styles } from '../../styles/dashboard';
 
 const { width } = Dimensions.get('window');
 
-const StatsHeader = ({ 
+const SlidingStatsHeader = ({ 
   totalSavings, 
   periodTotal, 
-  chartView,
-  totalSpending = 0  // New prop for spending data
+  chartView, 
+  totalSpending = 0, 
+  periodSpending = 0,
+  onAddSaving,    // Now properly used
+  onAddSpending   // Now properly used
 }) => {
-  // New sliding functionality
   const [activeView, setActiveView] = useState(0); // 0 = savings, 1 = spending
   const scrollViewRef = useRef(null);
 
   const getPeriodLabel = () => {
     switch(chartView) {
       case 'weekly': return 'Son 7 Gün';
-      case 'monthly': return 'Son 30 Gün';
+      case 'monthly': return 'Son 30 Gün';  
       case 'yearly': return 'Son 12 Ay';
       default: return 'Dönem';
     }
   };
 
-  // New calculations
   const netSavings = totalSavings - totalSpending;
 
   const handleSlide = (index) => {
     setActiveView(index);
     scrollViewRef.current?.scrollTo({
-      x: index * (width - 32), // Account for margins
+      x: index * width,
       animated: true,
     });
   };
 
   const handleScroll = (event) => {
     const scrollX = event.nativeEvent.contentOffset.x;
-    const slideWidth = width - 32;
-    const index = Math.round(scrollX / slideWidth);
+    const index = Math.round(scrollX / width);
     if (index !== activeView) {
       setActiveView(index);
     }
   };
 
   return (
-    <View style={styles.header}>
+    <View style={styles.slidingHeaderContainer}>
       {/* Tab Indicators */}
       <View style={styles.tabIndicators}>
         <TouchableOpacity 
@@ -75,8 +75,8 @@ const StatsHeader = ({
         scrollEventThrottle={16}
         style={styles.slidingContent}
       >
-        {/* ORIGINAL SAVINGS VIEW */}
-        <View style={[styles.headerSlide, { width: width - 32 }]}>
+        {/* SAVINGS VIEW */}
+        <View style={[styles.headerSlide, { width }]}>
           <View style={styles.headerTitle}>
             <Text style={styles.title}>Tasarruf Takipçim</Text>
             <Icon name="wallet" size={24} color="#10b981" />
@@ -95,8 +95,8 @@ const StatsHeader = ({
           </View>
         </View>
 
-        {/* NEW SPENDING VIEW */}
-        <View style={[styles.headerSlide, { width: width - 32 }]}>
+        {/* SPENDING VIEW */}
+        <View style={[styles.headerSlide, { width }]}>
           <View style={styles.headerTitle}>
             <Text style={styles.title}>Harcama Takibi</Text>
             <Icon name="card" size={24} color="#ef4444" />
@@ -120,8 +120,39 @@ const StatsHeader = ({
           </View>
         </View>
       </ScrollView>
+
+      {/* Quick Action Buttons - NOW WITH WORKING onPress */}
+      <View style={styles.quickActions}>
+        {activeView === 0 ? (
+          <TouchableOpacity 
+            style={styles.quickActionButton}
+            onPress={onAddSaving}  // FIXED: Actually calls the handler
+          >
+            <Icon name="add-circle" size={16} color="#10b981" />
+            <Text style={styles.quickActionText}>Tasarruf Ekle</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity 
+            style={styles.quickActionButton}
+            onPress={onAddSpending}  // FIXED: Actually calls the handler
+          >
+            <Icon name="remove-circle" size={16} color="#ef4444" />
+            <Text style={styles.quickActionText}>Harcama Ekle</Text>
+          </TouchableOpacity>
+        )}
+        
+        <TouchableOpacity 
+          style={styles.quickActionButton}
+          onPress={() => handleSlide(activeView === 0 ? 1 : 0)}
+        >
+          <Icon name="swap-horizontal" size={16} color="#6b7280" />
+          <Text style={styles.quickActionText}>
+            {activeView === 0 ? 'Harcama' : 'Tasarruf'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
-export default StatsHeader;
+export default SlidingStatsHeader;

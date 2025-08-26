@@ -29,22 +29,14 @@ const DashboardTab = ({
   const periodTotal = chartData.data.reduce((sum, value) => sum + value, 0);
   const monthDays = getDaysInMonth(currentMonth, currentYear);
 
-  /* Debug log
-  React.useEffect(() => {
-    console.log("Dashboard Calendar Debug:");
-    console.log("Current month:", currentMonth, "(", MONTH_NAMES[currentMonth], ")");
-    console.log("Current year:", currentYear);
-    console.log("Month days array length:", monthDays.length);
-    console.log("First 7 positions:", monthDays.slice(0, 7).map(d => d ? d.getDate() : 'empty'));
-  }, [currentMonth, currentYear]);*/
-
   return (
     <>
       <StatsHeader
-        totalSavings={totalSavings}
-        periodTotal={periodTotal}
-        chartView={chartView}
-      />
+  totalSavings={totalSavings}
+  periodTotal={periodTotal}
+  chartView={chartView}
+  totalSpending={0} // For now, set to 0 until you add spending tracking
+/>
       
       <Chart
         chartData={chartData}

@@ -201,4 +201,41 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  // Tab indicators
+tabIndicators: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginBottom: 15,
+  gap: 8,
+},
+
+tabIndicator: {
+  padding: 8,
+  borderRadius: 20,
+},
+
+activeTabIndicator: {
+  backgroundColor: '#f0f9ff',
+},
+
+tabIndicatorDot: {
+  width: 8,
+  height: 8,
+  borderRadius: 4,
+  backgroundColor: '#d1d5db',
+},
+
+activeTabIndicatorDot: {
+  backgroundColor: '#3b82f6',
+},
+
+// Sliding content
+slidingContent: {
+  marginHorizontal: -20, // Compensate for header padding
+},
+
+headerSlide: {
+  paddingHorizontal: 20,
+},
 });
