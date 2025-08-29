@@ -12,11 +12,15 @@ const StatsHeader = ({
   totalSavings, 
   periodTotal, 
   chartView,
-  totalSpending = 0  // New prop for spending data
+  totalSpending = 0,
+  appMode,
+  theme 
 }) => {
   // New sliding functionality
   const [activeView, setActiveView] = useState(0); // 0 = savings, 1 = spending
   const scrollViewRef = useRef(null);
+  const config = getModeConfig(appMode);
+  const currentTotal = appMode === 'savings' ? totalSavings : totalSpending;
 
   const getPeriodLabel = () => {
     switch(chartView) {
@@ -69,7 +73,7 @@ const StatsHeader = ({
       <ScrollView
         ref={scrollViewRef}
         horizontal
-        pagingEnabled
+        pagingEnableds
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
         scrollEventThrottle={16}

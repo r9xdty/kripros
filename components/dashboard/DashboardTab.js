@@ -35,9 +35,10 @@ const DashboardTab = ({
   totalSavings={totalSavings}
   periodTotal={periodTotal}
   chartView={chartView}
-  totalSpending={0} // For now, set to 0 until you add spending tracking
-/>
-      
+  totalSpending={totalSpending} // Calculate from dailySpending
+  appMode={appMode}
+  theme={theme}
+/>  
       <Chart
         chartData={chartData}
         chartView={chartView}
