@@ -1,26 +1,25 @@
 // =====================================
-// components/dashboard/StatsHeader.js - FIXED VERSION
+// components/dashboard/StatsHeader.js - FULLY FIXED VERSION
 // =====================================
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import Icon from '../common/Icon';
 import { styles } from '../../styles/dashboard';
-import { getModeConfig } from '../../utils/theme'; // Add this import
+import { getModeConfig } from '../../utils/theme';
 
 const { width } = Dimensions.get('window');
 
 const StatsHeader = ({ 
-  totalSavings, 
-  periodTotal, 
-  chartView,
+  totalSavings = 0, 
+  periodTotal = 0, 
+  chartView = 'weekly',
   totalSpending = 0,
-  appMode,
+  appMode = 'savings',
   theme 
 }) => {
-  // New sliding functionality
-  const [activeView, setActiveView] = useState(0); // 0 = savings, 1 = spending
+  const [activeView, setActiveView] = useState(0);
   const scrollViewRef = useRef(null);
-  const config = getModeConfig(appMode); // Now getModeConfig is imported
+  const config = getModeConfig(appMode);
   const currentTotal = appMode === 'savings' ? totalSavings : totalSpending;
 
   const getPeriodLabel = () => {
@@ -32,15 +31,16 @@ const StatsHeader = ({
     }
   };
 
-  // New calculations
   const netSavings = totalSavings - totalSpending;
 
   const handleSlide = (index) => {
     setActiveView(index);
-    scrollViewRef.current?.scrollTo({
-      x: index * (width - 32), // Account for margins
-      animated: true,
-    });
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        x: index * (width - 32),
+        animated: true,
+      });
+    }
   };
 
   const handleScroll = (event) => {
@@ -80,7 +80,7 @@ const StatsHeader = ({
         scrollEventThrottle={16}
         style={styles.slidingContent}
       >
-        {/* ORIGINAL SAVINGS VIEW */}
+        {/* SAVINGS VIEW */}
         <View style={[styles.headerSlide, { width: width - 32 }]}>
           <View style={styles.headerTitle}>
             <Text style={styles.title}>Tasarruf Takipçim</Text>
@@ -100,7 +100,7 @@ const StatsHeader = ({
           </View>
         </View>
 
-        {/* NEW SPENDING VIEW */}
+        {/* SPENDING VIEW */}
         <View style={[styles.headerSlide, { width: width - 32 }]}>
           <View style={styles.headerTitle}>
             <Text style={styles.title}>Harcama Takibi</Text>

@@ -1,11 +1,12 @@
 // =====================================
-// App.js - SAFE VERSION TO FIX ERRORS
+// App.js - SIMPLIFIED WORKING VERSION
 // =====================================
 import React, { useState } from 'react';
 import { SafeAreaView, StatusBar, ScrollView, View } from 'react-native';
 import TabBar from './components/common/TabBar';
-import HamburgerMenu from './components/common/HamburgerMenu';
-import MenuDrawer from './components/common/MenuDrawer';
+// MENU COMPONENTS COMMENTED OUT FOR NOW
+// import HamburgerMenu from './components/common/HamburgerMenu';
+// import MenuDrawer from './components/common/MenuDrawer';
 import DashboardTab from './components/dashboard/DashboardTab';
 import CalendarTab from './components/calendar/CalendarTab';
 import HistoryTab from './components/history/HistoryTab';
@@ -50,57 +51,46 @@ const App = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
       
-      {/* Hamburger Menu Button */}
-      <HamburgerMenu 
-        isOpen={menuOpen} 
-        onPress={() => setMenuOpen(!menuOpen)} 
-      />
-      
-      {/* Menu Drawer with Overlay */}
-      <MenuDrawer
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        appMode={appMode}
-        setAppMode={setAppMode}
-      />
+      {/* MENU TEMPORARILY DISABLED */}
+      {/* Will add back once basic app works */}
       
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />
       
-      {/* Main Content with padding for menu button */}
-      <View style={styles.mainContent}>
+      {/* Main Content */}
+      <View style={{ flex: 1, paddingBottom: 100 }}>
         {activeTab !== 'history' ? (
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {activeTab === 'dashboard' && (
-            <DashboardTab
-              appMode={appMode}
-              theme={theme}
-              savings={savings}
-              dailySavings={dailySavings}
-              dailySpending={dailySpending}
-              currentData={currentData}
-              chartView={chartView}
-              setChartView={setChartView}
-              setShowAddModal={setShowAddModal}
-              setShowSavingsModal={setShowSavingsModal}
-              setSelectedDate={setSelectedDate}
-              setShowCalendarModal={setShowCalendarModal}
-            />
-          )}
-          
-          {activeTab === 'calendar' && (
-            <CalendarTab
-              appMode={appMode}
-              theme={theme}
-              dailySavings={dailySavings}
-              dailySpending={dailySpending}
-              currentData={currentData}
-              calendarView={calendarView}
-              setCalendarView={setCalendarView}
-              setSelectedDate={setSelectedDate}
-              setShowCalendarModal={setShowCalendarModal}
-            />
-          )}
-        </ScrollView>
+            {activeTab === 'dashboard' && (
+              <DashboardTab
+                appMode={appMode}
+                theme={theme}
+                savings={savings}
+                dailySavings={dailySavings}
+                dailySpending={dailySpending}
+                currentData={currentData}
+                chartView={chartView}
+                setChartView={setChartView}
+                setShowAddModal={setShowAddModal}
+                setShowSavingsModal={setShowSavingsModal}
+                setSelectedDate={setSelectedDate}
+                setShowCalendarModal={setShowCalendarModal}
+              />
+            )}
+            
+            {activeTab === 'calendar' && (
+              <CalendarTab
+                appMode={appMode}
+                theme={theme}
+                dailySavings={dailySavings}
+                dailySpending={dailySpending}
+                currentData={currentData}
+                calendarView={calendarView}
+                setCalendarView={setCalendarView}
+                setSelectedDate={setSelectedDate}
+                setShowCalendarModal={setShowCalendarModal}
+              />
+            )}
+          </ScrollView>
         ) : (
           <View style={styles.content}>
             <HistoryTab 
@@ -114,6 +104,7 @@ const App = () => {
         )}
       </View>
 
+      {/* Modals */}
       <AddSavingModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
