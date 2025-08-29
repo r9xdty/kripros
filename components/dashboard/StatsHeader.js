@@ -1,10 +1,11 @@
 // =====================================
-// components/dashboard/StatsHeader.js - WITH SLIDING FUNCTIONALITY ADDED
+// components/dashboard/StatsHeader.js - FIXED VERSION
 // =====================================
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import Icon from '../common/Icon';
 import { styles } from '../../styles/dashboard';
+import { getModeConfig } from '../../utils/theme'; // Add this import
 
 const { width } = Dimensions.get('window');
 
@@ -19,7 +20,7 @@ const StatsHeader = ({
   // New sliding functionality
   const [activeView, setActiveView] = useState(0); // 0 = savings, 1 = spending
   const scrollViewRef = useRef(null);
-  const config = getModeConfig(appMode);
+  const config = getModeConfig(appMode); // Now getModeConfig is imported
   const currentTotal = appMode === 'savings' ? totalSavings : totalSpending;
 
   const getPeriodLabel = () => {
@@ -73,7 +74,7 @@ const StatsHeader = ({
       <ScrollView
         ref={scrollViewRef}
         horizontal
-        pagingEnableds
+        pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
         scrollEventThrottle={16}

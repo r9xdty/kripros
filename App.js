@@ -1,10 +1,11 @@
 // =====================================
-// App.js - WITH MODE TOGGLE INTEGRATION
+// App.js - SAFE VERSION TO FIX ERRORS
 // =====================================
 import React, { useState } from 'react';
 import { SafeAreaView, StatusBar, ScrollView, View } from 'react-native';
 import TabBar from './components/common/TabBar';
-import ModeToggleBar from './components/common/ModeToggleBar';
+import HamburgerMenu from './components/common/HamburgerMenu';
+import MenuDrawer from './components/common/MenuDrawer';
 import DashboardTab from './components/dashboard/DashboardTab';
 import CalendarTab from './components/calendar/CalendarTab';
 import HistoryTab from './components/history/HistoryTab';
@@ -18,8 +19,9 @@ import { FREQUENCY_TYPES } from './utils/recommendationUtils';
 const App = () => {
   const [savings, setSavings] = useState([]);
   const [dailySavings, setDailySavings] = useState({});
-  const [dailySpending, setDailySpending] = useState({}); // Add spending data
-  const [appMode, setAppMode] = useState('savings'); // New: app-wide mode toggle
+  const [dailySpending, setDailySpending] = useState({});
+  const [appMode, setAppMode] = useState('savings');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSavingsModal, setShowSavingsModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -48,13 +50,26 @@ const App = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
       
-      {/* Mode Toggle Bar - Left Side */}
-      <ModeToggleBar appMode={appMode} setAppMode={setAppMode} />
+      {/* Hamburger Menu Button */}
+      <HamburgerMenu 
+        isOpen={menuOpen} 
+        onPress={() => setMenuOpen(!menuOpen)} 
+      />
+      
+      {/* Menu Drawer with Overlay */}
+      <MenuDrawer
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        appMode={appMode}
+        setAppMode={setAppMode}
+      />
       
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />
       
-      {activeTab !== 'history' ? (
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Main Content with padding for menu button */}
+      <View style={styles.mainContent}>
+        {activeTab !== 'history' ? (
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {activeTab === 'dashboard' && (
             <DashboardTab
               appMode={appMode}
@@ -62,7 +77,7 @@ const App = () => {
               savings={savings}
               dailySavings={dailySavings}
               dailySpending={dailySpending}
-              currentData={currentData} // Pass current data based on mode
+              currentData={currentData}
               chartView={chartView}
               setChartView={setChartView}
               setShowAddModal={setShowAddModal}
@@ -78,7 +93,7 @@ const App = () => {
               theme={theme}
               dailySavings={dailySavings}
               dailySpending={dailySpending}
-              currentData={currentData} // Pass current data based on mode
+              currentData={currentData}
               calendarView={calendarView}
               setCalendarView={setCalendarView}
               setSelectedDate={setSelectedDate}
@@ -86,17 +101,18 @@ const App = () => {
             />
           )}
         </ScrollView>
-      ) : (
-        <View style={styles.content}>
-          <HistoryTab 
-            appMode={appMode}
-            theme={theme}
-            dailySavings={dailySavings}
-            dailySpending={dailySpending}
-            currentData={currentData} // Pass current data based on mode
-          />
-        </View>
-      )}
+        ) : (
+          <View style={styles.content}>
+            <HistoryTab 
+              appMode={appMode}
+              theme={theme}
+              dailySavings={dailySavings}
+              dailySpending={dailySpending}
+              currentData={currentData}
+            />
+          </View>
+        )}
+      </View>
 
       <AddSavingModal
         visible={showAddModal}
@@ -127,8 +143,8 @@ const App = () => {
         onClose={() => setShowCalendarModal(false)}
         selectedDate={selectedDate}
         savings={savings}
-        currentData={currentData} // Pass current data based on mode
-        setCurrentData={setCurrentData} // Pass current setter based on mode
+        currentData={currentData}
+        setCurrentData={setCurrentData}
         appMode={appMode}
         theme={theme}
       />
