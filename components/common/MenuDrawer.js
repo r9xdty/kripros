@@ -1,5 +1,5 @@
 // =====================================
-// components/common/MenuDrawer.js - SLIDING MENU DRAWER
+// components/common/MenuDrawer.js - FIXED BLOCKING ISSUE
 // =====================================
 import React, { useEffect, useRef } from 'react';
 import { 
@@ -59,12 +59,13 @@ const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
     setTimeout(onClose, 150); // Close menu after selection
   };
 
-  if (!isOpen && fadeAnim._value === 0) {
-    return null; // Don't render when fully closed
+  // IMPORTANT: Don't render anything when closed
+  if (!isOpen) {
+    return null;
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} pointerEvents={isOpen ? 'auto' : 'none'}>
       {/* Dark Overlay */}
       <TouchableWithoutFeedback onPress={onClose}>
         <Animated.View 

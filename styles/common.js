@@ -1,5 +1,5 @@
 // =====================================
-// styles/common.js - UPDATED WITH MENU SUPPORT
+// styles/common.js - FIXED LAYOUT AND Z-INDEX
 // =====================================
 import { StyleSheet } from 'react-native';
 
@@ -11,7 +11,8 @@ export const styles = StyleSheet.create({
   
   mainContent: {
     flex: 1,
-    paddingTop: 60, // Space for hamburger menu button
+    paddingTop: 100, // Increased to ensure space for hamburger menu
+    paddingBottom: 80, // Space for tab bar
   },
   
   content: {
@@ -36,7 +37,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 10,
-    zIndex: 100,
+    zIndex: 50, // Reduced from 100
   },
   
   tab: {

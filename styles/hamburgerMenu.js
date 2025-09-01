@@ -1,5 +1,5 @@
 // =====================================
-// styles/hamburgerMenu.js - HAMBURGER MENU BUTTON STYLES
+// styles/hamburgerMenu.js - FIXED Z-INDEX
 // =====================================
 import { StyleSheet } from 'react-native';
 
@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     left: 16,
-    zIndex: 1001,
+    zIndex: 101, // Reduced from 1001
     width: 44,
     height: 44,
     justifyContent: 'center',

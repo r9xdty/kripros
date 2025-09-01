@@ -1,5 +1,5 @@
 // =====================================
-// styles/menuDrawer.js - MENU DRAWER STYLES
+// styles/menuDrawer.js - FIXED STYLES WITH POINTER EVENTS
 // =====================================
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 
@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 999,
+    elevation: 999, // For Android
   },
   
   overlay: {

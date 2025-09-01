@@ -1,12 +1,11 @@
 // =====================================
-// App.js - SIMPLIFIED WORKING VERSION
+// App.js - COMPLETE FIXED VERSION WITH MENU
 // =====================================
 import React, { useState } from 'react';
 import { SafeAreaView, StatusBar, ScrollView, View } from 'react-native';
 import TabBar from './components/common/TabBar';
-// MENU COMPONENTS COMMENTED OUT FOR NOW
-// import HamburgerMenu from './components/common/HamburgerMenu';
-// import MenuDrawer from './components/common/MenuDrawer';
+import HamburgerMenu from './components/common/HamburgerMenu';
+import MenuDrawer from './components/common/MenuDrawer';
 import DashboardTab from './components/dashboard/DashboardTab';
 import CalendarTab from './components/calendar/CalendarTab';
 import HistoryTab from './components/history/HistoryTab';
@@ -51,13 +50,11 @@ const App = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
       
-      {/* MENU TEMPORARILY DISABLED */}
-      {/* Will add back once basic app works */}
-      
+      {/* Tab Bar - Moved to the top of render order */}
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />
       
-      {/* Main Content */}
-      <View style={{ flex: 1, paddingBottom: 100 }}>
+      {/* Main Content with padding for menu button */}
+      <View style={styles.mainContent}>
         {activeTab !== 'history' ? (
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {activeTab === 'dashboard' && (
@@ -134,8 +131,10 @@ const App = () => {
         onClose={() => setShowCalendarModal(false)}
         selectedDate={selectedDate}
         savings={savings}
-        currentData={currentData}
-        setCurrentData={setCurrentData}
+        dailySavings={dailySavings}
+        setDailySavings={setDailySavings}
+        dailySpending={dailySpending}
+        setDailySpending={setDailySpending}
         appMode={appMode}
         theme={theme}
       />

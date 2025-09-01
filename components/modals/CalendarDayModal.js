@@ -1,5 +1,5 @@
 // =====================================
-// components/modals/CalendarDayModal.js - ALL FIXES
+// components/modals/CalendarDayModal.js - FIXED FOR BOTH MODES
 // =====================================
 import React, { useState, useEffect } from 'react';
 import {
@@ -26,16 +26,26 @@ const CalendarDayModal = ({
   selectedDate,
   savings,
   dailySavings,
-  setDailySavings
+  setDailySavings,
+  appMode = 'savings',  // Add default value
+  theme,
+  dailySpending,        // Add for spending mode
+  setDailySpending      // Add for spending mode
 }) => {
   const [recommendations, setRecommendations] = useState([]);
+  
+  // Determine which data to use based on mode
+  const currentDailyData = appMode === 'savings' ? dailySavings : (dailySpending || {});
+  const setCurrentDailyData = appMode === 'savings' ? setDailySavings : (setDailySpending || setDailySavings);
+  const itemLabel = appMode === 'savings' ? 'tasarruf' : 'harcama';
+  const itemLabelCapital = appMode === 'savings' ? 'Tasarruf' : 'Harcama';
   
   // Handle Android back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       if (visible) {
         onClose();
-        return true; // Prevent default back behavior
+        return true;
       }
       return false;
     });
@@ -44,42 +54,44 @@ const CalendarDayModal = ({
   }, [visible, onClose]);
   
   useEffect(() => {
-    if (selectedDate && visible) {
-      // Get recommendations
-      const recs = getRecommendedSavings(savings, dailySavings, selectedDate);
+    if (selectedDate && visible && appMode === 'savings') {
+      // Only get recommendations for savings mode
+      const recs = getRecommendedSavings(savings || [], currentDailyData || {}, selectedDate);
       setRecommendations(recs);
+    } else {
+      setRecommendations([]);
     }
-  }, [selectedDate, visible, savings, dailySavings]);
+  }, [selectedDate, visible, savings, currentDailyData, appMode]);
   
-  const handleAddToDate = (saving) => {
+  const handleAddToDate = (item) => {
     const dateStr = formatDate(selectedDate);
     
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
     if (selectedDate > todayEnd) {
-      Alert.alert('Hata', 'Gelecek tarihe tasarruf ekleyemezsiniz!');
+      Alert.alert('Hata', `Gelecek tarihe ${itemLabel} ekleyemezsiniz!`);
       return;
     }
     
-    const newDailySavings = { ...dailySavings };
-    if (!newDailySavings[dateStr]) {
-      newDailySavings[dateStr] = [];
+    const newDailyData = { ...currentDailyData };
+    if (!newDailyData[dateStr]) {
+      newDailyData[dateStr] = [];
     }
     
-    const newSaving = {
-      ...saving,
+    const newItem = {
+      ...item,
       addedAt: new Date().toISOString(),
       uniqueId: Date.now() + Math.random(),
       action: 'added'
     };
     
-    newDailySavings[dateStr].push(newSaving);
-    setDailySavings(newDailySavings);
+    newDailyData[dateStr].push(newItem);
+    setCurrentDailyData(newDailyData);
     
     // Show quick success message
     Alert.alert(
       '✓ Eklendi', 
-      `${saving.name} başarıyla eklendi!`,
+      `${item.name} başarıyla eklendi!`,
       [{ text: 'Tamam', style: 'default' }],
       { cancelable: true }
     );
@@ -88,37 +100,37 @@ const CalendarDayModal = ({
   const handleRemoveFromDate = (dateStr, uniqueId) => {
     Alert.alert(
       'Kaldır',
-      'Bu tasarrufu kaldırmak istediğinizden emin misiniz?',
+      `Bu ${itemLabel}u kaldırmak istediğinizden emin misiniz?`,
       [
         { text: 'İptal', style: 'cancel' },
         { 
           text: 'Kaldır', 
           style: 'destructive',
           onPress: () => {
-            const newDailySavings = { ...dailySavings };
-            if (newDailySavings[dateStr]) {
-              const removedSaving = newDailySavings[dateStr].find(s => s.uniqueId === uniqueId);
+            const newDailyData = { ...currentDailyData };
+            if (newDailyData[dateStr]) {
+              const removedItem = newDailyData[dateStr].find(s => s.uniqueId === uniqueId);
               
-              newDailySavings[dateStr] = newDailySavings[dateStr].filter(s => s.uniqueId !== uniqueId);
-              if (newDailySavings[dateStr].length === 0) {
-                delete newDailySavings[dateStr];
+              newDailyData[dateStr] = newDailyData[dateStr].filter(s => s.uniqueId !== uniqueId);
+              if (newDailyData[dateStr].length === 0) {
+                delete newDailyData[dateStr];
               }
               
-              if (removedSaving) {
+              if (removedItem) {
                 const removalRecord = {
-                  ...removedSaving,
+                  ...removedItem,
                   action: 'removed',
                   removedAt: new Date().toISOString(),
                   uniqueId: Date.now() + Math.random()
                 };
                 
-                if (!newDailySavings[dateStr + '_removed']) {
-                  newDailySavings[dateStr + '_removed'] = [];
+                if (!newDailyData[dateStr + '_removed']) {
+                  newDailyData[dateStr + '_removed'] = [];
                 }
-                newDailySavings[dateStr + '_removed'].push(removalRecord);
+                newDailyData[dateStr + '_removed'].push(removalRecord);
               }
             }
-            setDailySavings(newDailySavings);
+            setCurrentDailyData(newDailyData);
           }
         }
       ]
@@ -128,19 +140,22 @@ const CalendarDayModal = ({
   if (!selectedDate) return null;
 
   const dateStr = formatDate(selectedDate);
-  const daySavings = dailySavings[dateStr] || [];
-  const dayTotal = getDayTotal(selectedDate, dailySavings);
+  const dayItems = currentDailyData[dateStr] || [];
+  const dayTotal = getDayTotal(selectedDate, currentDailyData);
   
-  // Separate recommended and regular savings
+  // For spending mode, we don't have predefined items like savings
+  // So we skip the recommendations section
   const recommendedIds = recommendations.map(r => r.id);
-  const regularSavings = savings.filter(s => !recommendedIds.includes(s.id));
+  const regularItems = appMode === 'savings' 
+    ? (savings || []).filter(s => !recommendedIds.includes(s.id))
+    : [];
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose} // Android back button
+      onRequestClose={onClose}
     >
       <SafeAreaView style={styles.modalContainer}>
         <KeyboardAvoidingView 
@@ -168,32 +183,42 @@ const CalendarDayModal = ({
           <ScrollView 
             style={styles.modalContent} 
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }} // Extra padding for bottom
+            contentContainerStyle={{ paddingBottom: 100 }}
           >
             {/* Total for the day */}
             <View style={styles.dayTotalContainer}>
-              <Text style={styles.dayTotalLabel}>Bu günkü tasarruf</Text>
-              <Text style={styles.dayTotalAmount}>
+              <Text style={styles.dayTotalLabel}>Bu günkü {itemLabel}</Text>
+              <Text style={[
+                styles.dayTotalAmount,
+                { color: appMode === 'savings' ? '#10b981' : '#ef4444' }
+              ]}>
                 {dayTotal.toFixed(2)} ₺
               </Text>
             </View>
             
-            {/* Already added savings */}
-            {daySavings.length > 0 && (
+            {/* Already added items */}
+            {dayItems.length > 0 && (
               <View style={styles.daySavingsContainer}>
-                <Text style={styles.daySavingsTitle}>Bu gün eklenen tasarruflar:</Text>
-                <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
-                  {daySavings.map((item) => (
-                    <View key={item.uniqueId?.toString()} style={styles.daySavingItem}>
-                      <View style={styles.daySavingItemLeft}>
-                        <Text style={styles.daySavingItemName}>{item.name}</Text>
-                        <Text style={styles.daySavingItemAmount}>{item.amount} ₺</Text>
+                <Text style={styles.daySavingsTitle}>
+                  Bu gün eklenen {itemLabel}lar:
+                </Text>
+                <ScrollView style={{ maxHeight: 200 }}>
+                  {dayItems.map((item, index) => (
+                    <View key={item.uniqueId || index} style={styles.daySavingItem}>
+                      <View style={styles.daySavingInfo}>
+                        <Text style={styles.daySavingName}>{item.name}</Text>
+                        <Text style={[
+                          styles.daySavingAmount,
+                          { color: appMode === 'savings' ? '#10b981' : '#ef4444' }
+                        ]}>
+                          {item.amount} ₺
+                        </Text>
                       </View>
                       <TouchableOpacity
-                        style={styles.removeDaySavingButton}
+                        style={styles.removeButton}
                         onPress={() => handleRemoveFromDate(dateStr, item.uniqueId)}
                       >
-                        <Text style={styles.removeButtonText}>✕</Text>
+                        <Icon name="trash" size={16} color="#ef4444" />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -201,80 +226,85 @@ const CalendarDayModal = ({
               </View>
             )}
             
-            {/* Recommended Savings */}
-            {recommendations.length > 0 && (
-              <View style={styles.recommendedSection}>
-                <View style={styles.recommendedHeader}>
-                  <Text style={styles.recommendedTitle}>🎯 Önerilen Tasarruflar</Text>
-                  <Text style={styles.recommendedSubtitle}>Alışkanlıklarınıza göre</Text>
-                </View>
-                {recommendations.map((item) => (
+            {/* Recommendations - Only for savings mode */}
+            {appMode === 'savings' && recommendations.length > 0 && (
+              <View style={styles.recommendationsContainer}>
+                <Text style={styles.recommendationsTitle}>Önerilen {itemLabel}lar:</Text>
+                {recommendations.map(rec => (
                   <TouchableOpacity
-                    key={item.id}
-                    style={styles.recommendedItem}
-                    onPress={() => handleAddToDate(item)}
+                    key={rec.id}
+                    style={[styles.recommendationItem, rec.addedToday && styles.recommendationItemAdded]}
+                    onPress={() => !rec.addedToday && handleAddToDate(rec)}
+                    disabled={rec.addedToday}
                   >
-                    <View style={styles.recommendedItemLeft}>
-                      <Text style={styles.recommendedItemName}>{item.name}</Text>
-                      <View style={styles.recommendedItemDetails}>
-                        <Text style={styles.recommendedItemAmount}>
-                          {item.amount} ₺
-                        </Text>
-                        {item.frequency && (
-                          <View style={styles.frequencyBadge}>
-                            <Text style={styles.frequencyBadgeText}>
-                              {FREQUENCY_LABELS[item.frequency]}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      {item.reason && (
-                        <Text style={styles.recommendedReason}>{item.reason}</Text>
-                      )}
+                    <View style={styles.recommendationInfo}>
+                      <Text style={[
+                        styles.recommendationName,
+                        rec.addedToday && styles.recommendationNameAdded
+                      ]}>
+                        {rec.name}
+                      </Text>
+                      <Text style={styles.recommendationFrequency}>
+                        {FREQUENCY_LABELS[rec.frequency]} • {rec.reason}
+                      </Text>
                     </View>
-                    <View style={styles.recommendedItemRight}>
-                      <View style={styles.scoreIndicator}>
-                        <Text style={styles.scoreText}>%{Math.round(item.score)}</Text>
-                      </View>
+                    <View style={styles.recommendationRight}>
+                      <Text style={[
+                        styles.recommendationAmount,
+                        rec.addedToday && styles.recommendationAmountAdded
+                      ]}>
+                        {rec.amount} ₺
+                      </Text>
+                      {rec.addedToday ? (
+                        <Icon name="checkmark" size={20} color="#10b981" />
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.addRecommendationButton}
+                          onPress={() => handleAddToDate(rec)}
+                        >
+                          <Icon name="add" size={20} color="#fff" />
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </TouchableOpacity>
                 ))}
               </View>
             )}
             
-            {/* Regular Savings - CAN ADD MULTIPLE TIMES */}
-            <View style={styles.addSavingSection}>
-              <Text style={styles.addSavingSectionTitle}>
-                {recommendations.length > 0 ? 'Diğer Tasarruflar:' : 'Tasarruf Ekle:'}
-              </Text>
-              {savings.length === 0 ? (
-                <View style={styles.noSavingsContainer}>
-                  <Text style={styles.noSavingsText}>
-                    Önce "Tasarruf Ekle" butonundan tasarruf türleri oluşturun
-                  </Text>
-                </View>
-              ) : (
-                regularSavings.map((item) => (
+            {/* Regular items - Only for savings mode */}
+            {appMode === 'savings' && regularItems.length > 0 && (
+              <View style={styles.allSavingsContainer}>
+                <Text style={styles.allSavingsTitle}>Tüm {itemLabel}lar:</Text>
+                {regularItems.map(item => (
                   <TouchableOpacity
                     key={item.id}
-                    style={styles.addSavingOption}
+                    style={styles.savingOption}
                     onPress={() => handleAddToDate(item)}
                   >
-                    <View style={styles.savingOptionLeft}>
-                      <Text style={styles.addSavingOptionName}>{item.name}</Text>
-                      {item.frequency && (
-                        <Text style={styles.savingOptionFrequency}>
-                          {FREQUENCY_LABELS[item.frequency]}
-                        </Text>
-                      )}
+                    <View style={styles.savingOptionInfo}>
+                      <Text style={styles.savingOptionName}>{item.name}</Text>
+                      <Text style={styles.savingOptionFrequency}>
+                        {FREQUENCY_LABELS[item.frequency]}
+                      </Text>
                     </View>
-                    <Text style={styles.addSavingOptionAmount}>
-                      {item.amount} ₺
-                    </Text>
+                    <Text style={styles.savingOptionAmount}>{item.amount} ₺</Text>
                   </TouchableOpacity>
-                ))
-              )}
-            </View>
+                ))}
+              </View>
+            )}
+            
+            {/* Empty state for spending mode */}
+            {appMode === 'spending' && dayItems.length === 0 && (
+              <View style={styles.emptyStateContainer}>
+                <Icon name="card" size={48} color="#d1d5db" />
+                <Text style={styles.emptyStateText}>
+                  Bu gün için henüz harcama eklenmemiş
+                </Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Ana sayfadan harcama ekleyebilirsiniz
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
