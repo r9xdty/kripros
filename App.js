@@ -1,5 +1,5 @@
 // =====================================
-// App.js - COMPLETE FIXED VERSION WITH MENU
+// App.js - FIXED DRAWER VERSION
 // =====================================
 import React, { useState } from 'react';
 import { SafeAreaView, StatusBar, ScrollView, View } from 'react-native';
@@ -50,56 +50,72 @@ const App = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
       
-      {/* Tab Bar - Moved to the top of render order */}
-      <TabBar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />
-      
-      {/* Main Content with padding for menu button */}
-      <View style={styles.mainContent}>
-        {activeTab !== 'history' ? (
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {activeTab === 'dashboard' && (
-              <DashboardTab
+      {/* Main Content - First Layer */}
+      <View style={{ flex: 1 }}>
+        {/* Tab Bar at bottom */}
+        <TabBar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />
+        
+        {/* Content with padding */}
+        <View style={styles.mainContent}>
+          {activeTab !== 'history' ? (
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+              {activeTab === 'dashboard' && (
+                <DashboardTab
+                  appMode={appMode}
+                  theme={theme}
+                  savings={savings}
+                  dailySavings={dailySavings}
+                  dailySpending={dailySpending}
+                  currentData={currentData}
+                  chartView={chartView}
+                  setChartView={setChartView}
+                  setShowAddModal={setShowAddModal}
+                  setShowSavingsModal={setShowSavingsModal}
+                  setSelectedDate={setSelectedDate}
+                  setShowCalendarModal={setShowCalendarModal}
+                />
+              )}
+              
+              {activeTab === 'calendar' && (
+                <CalendarTab
+                  appMode={appMode}
+                  theme={theme}
+                  dailySavings={dailySavings}
+                  dailySpending={dailySpending}
+                  currentData={currentData}
+                  calendarView={calendarView}
+                  setCalendarView={setCalendarView}
+                  setSelectedDate={setSelectedDate}
+                  setShowCalendarModal={setShowCalendarModal}
+                />
+              )}
+            </ScrollView>
+          ) : (
+            <View style={styles.content}>
+              <HistoryTab 
                 appMode={appMode}
                 theme={theme}
-                savings={savings}
                 dailySavings={dailySavings}
                 dailySpending={dailySpending}
                 currentData={currentData}
-                chartView={chartView}
-                setChartView={setChartView}
-                setShowAddModal={setShowAddModal}
-                setShowSavingsModal={setShowSavingsModal}
-                setSelectedDate={setSelectedDate}
-                setShowCalendarModal={setShowCalendarModal}
               />
-            )}
-            
-            {activeTab === 'calendar' && (
-              <CalendarTab
-                appMode={appMode}
-                theme={theme}
-                dailySavings={dailySavings}
-                dailySpending={dailySpending}
-                currentData={currentData}
-                calendarView={calendarView}
-                setCalendarView={setCalendarView}
-                setSelectedDate={setSelectedDate}
-                setShowCalendarModal={setShowCalendarModal}
-              />
-            )}
-          </ScrollView>
-        ) : (
-          <View style={styles.content}>
-            <HistoryTab 
-              appMode={appMode}
-              theme={theme}
-              dailySavings={dailySavings}
-              dailySpending={dailySpending}
-              currentData={currentData}
-            />
-          </View>
-        )}
+            </View>
+          )}
+        </View>
       </View>
+
+      {/* Menu Components - Top Layer */}
+      <HamburgerMenu 
+        isOpen={menuOpen} 
+        onPress={() => setMenuOpen(!menuOpen)} 
+      />
+      
+      <MenuDrawer
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        appMode={appMode}
+        setAppMode={setAppMode}
+      />
 
       {/* Modals */}
       <AddSavingModal

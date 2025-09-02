@@ -1,5 +1,5 @@
 // =====================================
-// styles/menuDrawer.js - FIXED STYLES WITH POINTER EVENTS
+// styles/menuDrawer.js - PROPERLY FIXED STYLES
 // =====================================
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 
@@ -12,8 +12,8 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
-    elevation: 999, // For Android
+    zIndex: 998,
+    elevation: 998,
   },
   
   overlay: {
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
-    elevation: 10,
+    elevation: 999,
   },
   
   drawerContent: {
@@ -43,13 +43,22 @@ export const styles = StyleSheet.create({
   },
   
   drawerHeader: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
     paddingHorizontal: 20,
     paddingBottom: 30,
     backgroundColor: '#f9fafb',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
     alignItems: 'center',
+    position: 'relative',
+  },
+  
+  closeButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 40,
+    right: 20,
+    padding: 8,
+    zIndex: 1,
   },
   
   drawerTitle: {

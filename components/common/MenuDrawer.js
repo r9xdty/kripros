@@ -1,7 +1,7 @@
 // =====================================
-// components/common/MenuDrawer.js - FIXED BLOCKING ISSUE
+// components/common/MenuDrawer.js - PROPERLY FIXED VERSION
 // =====================================
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -16,15 +16,16 @@ import Icon from './Icon';
 import { styles } from '../../styles/menuDrawer';
 
 const { width } = Dimensions.get('window');
-const DRAWER_WIDTH = width * 0.75; // 75% of screen width
+const DRAWER_WIDTH = width * 0.75;
 
 const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isRendered, setIsRendered] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      // Open animations
+      setIsRendered(true);
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0,
@@ -38,7 +39,6 @@ const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
         }),
       ]).start();
     } else {
-      // Close animations
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: -DRAWER_WIDTH,
@@ -50,22 +50,29 @@ const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
           duration: 250,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start(() => {
+        setIsRendered(false);
+      });
     }
   }, [isOpen]);
 
   const handleModeChange = (mode) => {
     setAppMode(mode);
-    setTimeout(onClose, 150); // Close menu after selection
+    setTimeout(onClose, 150);
   };
 
-  // IMPORTANT: Don't render anything when closed
-  if (!isOpen) {
+  // Don't render at all if not needed
+  if (!isRendered) {
     return null;
   }
 
   return (
-    <View style={styles.container} pointerEvents={isOpen ? 'auto' : 'none'}>
+    <View 
+      style={[
+        styles.container,
+        { pointerEvents: isOpen ? 'auto' : 'none' }
+      ]}
+    >
       {/* Dark Overlay */}
       <TouchableWithoutFeedback onPress={onClose}>
         <Animated.View 
@@ -73,6 +80,7 @@ const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
             styles.overlay,
             {
               opacity: fadeAnim,
+              pointerEvents: isOpen ? 'auto' : 'none'
             }
           ]}
         />
@@ -87,23 +95,30 @@ const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
             width: DRAWER_WIDTH,
           }
         ]}
+        pointerEvents="box-none"
       >
         <ScrollView 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.drawerContent}
         >
-          {/* Header */}
+          {/* Header with Close Button */}
           <View style={styles.drawerHeader}>
+            <TouchableOpacity 
+              onPress={onClose}
+              style={styles.closeButton}
+            >
+              <Icon name="close" size={24} color="#6b7280" />
+            </TouchableOpacity>
             <Icon name="wallet" size={32} color="#10b981" />
             <Text style={styles.drawerTitle}>Tasarruf Takipçim</Text>
             <Text style={styles.drawerSubtitle}>Paranızı kontrol altında tutun</Text>
           </View>
 
-          {/* Mode Selection Section */}
+          {/* Mode Selection */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Uygulama Modu</Text>
             
-            {/* Savings Mode Option */}
+            {/* Savings Mode */}
             <TouchableOpacity 
               style={[
                 styles.menuItem,
@@ -135,7 +150,7 @@ const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
               )}
             </TouchableOpacity>
 
-            {/* Spending Mode Option */}
+            {/* Spending Mode */}
             <TouchableOpacity 
               style={[
                 styles.menuItem,
@@ -168,7 +183,7 @@ const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Additional Menu Items */}
+          {/* Other Options */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Diğer</Text>
             

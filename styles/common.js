@@ -1,5 +1,5 @@
 // =====================================
-// styles/common.js - FIXED LAYOUT AND Z-INDEX
+// styles/common.js - FIXED FOR DRAWER
 // =====================================
 import { StyleSheet } from 'react-native';
 
@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   
   mainContent: {
     flex: 1,
-    paddingTop: 100, // Increased to ensure space for hamburger menu
+    paddingTop: 110, // Space for hamburger menu
     paddingBottom: 80, // Space for tab bar
   },
   
@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#fff',
     paddingVertical: 8,
-    paddingBottom: 24, // Account for bottom safe area
+    paddingBottom: 24,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
     shadowColor: '#000',
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 10,
-    zIndex: 50, // Reduced from 100
+    zIndex: 90,
   },
   
   tab: {
