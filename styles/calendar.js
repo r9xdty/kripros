@@ -1,23 +1,19 @@
 // =====================================
-// styles/calendar.js - FIXED CALENDAR SIZE & BOTTOM PADDING WITH INTEGRATED YEAR
+// styles/calendar.js - COMPLETE FIXED VERSION
 // =====================================
-import { StyleSheet, Dimensions } from 'react-native';
-
-const { width } = Dimensions.get('window');
-const CHART_SIZE = width - 60; // Increased size for external labels
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   calendarTabContainer: {
     flex: 1,
     backgroundColor: '#f8f9ff',
-    paddingBottom: 100, // Added padding to prevent content cutoff
   },
+  
   calendarContainer: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 20, // Adjusted padding
+    padding: 20,
     margin: 16,
-    marginBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -25,657 +21,313 @@ export const styles = StyleSheet.create({
     elevation: 3,
   },
   
-  // Calendar styles - BIGGER & FIXED
-  calendar: {
-    marginTop: 12,
+  calendarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
   },
+  
+  calendarTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  
+  calendar: {
+    backgroundColor: '#fff',
+  },
+  
   calendarWeekHeader: {
     flexDirection: 'row',
-    marginBottom: 10,
-    paddingHorizontal: 2,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
   },
+  
   calendarHeaderCell: {
     flex: 1,
     alignItems: 'center',
   },
+  
   calendarWeekDay: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#6b7280',
-    textAlign: 'center',
   },
+  
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginTop: 8,
   },
+  
   calendarDayWrapper: {
     width: '14.28%',
     aspectRatio: 1,
     padding: 2,
   },
+  
   calendarDayInner: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
-    padding: 2, // Added padding for better text containment
+    borderRadius: 8,
+    backgroundColor: '#fff',
   },
+  
   calendarDayText: {
-    fontSize: 15, // Slightly reduced from 16
+    fontSize: 14,
     fontWeight: '500',
     color: '#374151',
   },
+  
+  // NEW: Container for both savings and spending amounts
+  calendarAmounts: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 1,
+    marginTop: 2,
+  },
+  
   calendarDayAmount: {
-    fontSize: 10, // Slightly smaller to fit better
-    color: '#166534',
+    fontSize: 8,
     fontWeight: '600',
-    marginTop: 1,
+    // Color will be set inline (green for savings, red for spending)
   },
-  todayCalendarDay: {
-    backgroundColor: '#3b82f6',
-  },
+  
   savingCalendarDay: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#10b981',
   },
-  futureDateDisabled: {
-    backgroundColor: '#f3f4f6',
-  },
-  todayText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  
   savingDayText: {
-    color: '#166534',
+    color: '#059669',
     fontWeight: '600',
   },
-  futureDateText: {
-    color: '#9ca3af',
+  
+  todayCalendarDay: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 2,
+    borderColor: '#3b82f6',
   },
+  
+  todayText: {
+    color: '#1d4ed8',
+    fontWeight: '700',
+  },
+  
+  futureDateDisabled: {
+    backgroundColor: '#f9fafb',
+    opacity: 0.5,
+  },
+  
+  futureDateText: {
+    color: '#d1d5db',
+  },
+  
   otherMonthDay: {
     opacity: 0.3,
   },
+  
   otherMonthText: {
-    color: '#9ca3af',
+    color: '#d1d5db',
   },
   
-  // Calendar header
   extendedCalendarHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
+  
+  calendarNavButton: {
+    padding: 8,
+  },
+  
   monthYearButton: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
-    marginHorizontal: 10,
+    padding: 8,
   },
+  
   extendedCalendarTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
   },
+  
   tapToChangeText: {
     fontSize: 11,
     color: '#6b7280',
     marginTop: 2,
   },
-  calendarNavButton: {
-    padding: 10,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 20,
-  },
-  calendarHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  calendarTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginLeft: 8,
-  },
   
-  // Weekly Pie Chart Styles
   weeklyChartContainer: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 15,
+    padding: 20,
     margin: 16,
-    marginBottom: 100, // Large bottom margin to ensure visibility
+    marginTop: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
-    position: 'relative', // For year picker positioning
   },
-  weeklyChartHeader: {
-    marginBottom: 20,
-  },
-  chartHeaderTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
+  
   weeklyChartTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#1f2937',
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  chartViewSelector: {
-    flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    padding: 2,
-  },
-  chartViewButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  activeChartView: {
-    backgroundColor: '#3b82f6',
-  },
-  chartViewText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#6b7280',
-  },
-  activeChartViewText: {
-    color: '#fff',
-  },
-  periodNavigator: {
-    flexDirection: 'row',
+  
+  // Pie Chart Styles
+  pieChartContainer: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    gap: 8,
+    justifyContent: 'center',
+    paddingVertical: 20,
   },
+  
+  pieChartNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  
   navButton: {
     padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
+  
   navButtonDisabled: {
-    opacity: 0.5,
-    backgroundColor: '#f3f4f6',
-  },
-  periodDisplay: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-    gap: 6,
-  },
-  weekDropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    minWidth: 80,
-  },
-  monthDropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    minWidth: 50,
-  },
-  yearDropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    minWidth: 45,
-  },
-  dropdownButtonText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#374151',
-    marginRight: 4,
-  },
-  yearDropdownText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#fff',
-    marginRight: 4,
-  },
-  weekPickerDropdown: {
-    position: 'absolute',
-    top: 120,
-    left: '10%',
-    width: '35%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 1000,
-    maxHeight: 250,
-  },
-  monthPickerDropdown: {
-    position: 'absolute',
-    top: 120,
-    left: '35%',
-    width: '30%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 1000,
-    maxHeight: 300,
-  },
-  yearPickerDropdown: {
-    position: 'absolute',
-    top: 120,
-    right: '15%',
-    width: 90,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-    zIndex: 1000,
-    maxHeight: 200,
-  },
-  dropdownOption: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginBottom: 2,
-  },
-  dropdownOptionSelected: {
-    backgroundColor: '#3b82f6',
-  },
-  dropdownOptionDisabled: {
-    opacity: 0.5,
-  },
-  dropdownOptionText: {
-    fontSize: 13,
-    color: '#374151',
-  },
-  dropdownOptionTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  dropdownOptionTextDisabled: {
-    color: '#9ca3af',
-  },
-  yearOption: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-  },
-  yearOptionSelected: {
-    backgroundColor: '#3b82f6',
-  },
-  yearOptionText: {
-    fontSize: 14,
-    color: '#374151',
-    textAlign: 'center',
-  },
-  yearOptionTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  weeklyChartDate: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#374151',
-    marginRight: 8,
+    opacity: 0.3,
   },
   
-  // Pie Chart
-  pieChartWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    marginVertical: 15,
-  },
-  pieChartCenter: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pieCenterLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  pieCenterAmount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
-  pieTooltip: {
-    position: 'absolute',
-    backgroundColor: 'rgba(31, 41, 55, 0.95)',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    alignItems: 'center',
-    zIndex: 1000,
-    elevation: 999,
-  },
-  pieTooltipName: {
-    fontSize: 14,
-    color: '#fff',
-    marginBottom: 4,
-  },
-  pieTooltipAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  
-  // Top Items
-  topItemsContainer: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  topItemsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 12,
-  },
-  topItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  topItemRank: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  topItemRankText: {
-    fontSize: 11,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  topItemName: {
-    flex: 1,
-    fontSize: 14,
-    color: '#374151',
-  },
-  topItemAmount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#10b981',
-  },
-  
-  emptyChartContainer: {
-    paddingVertical: 60,
-    alignItems: 'center',
-  },
-  emptyChartText: {
-    fontSize: 16,
-    color: '#9ca3af',
-  },
-  
-  // Date Picker Modal Styles
-  pickerOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pickerContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    width: width * 0.85,
-    maxHeight: '70%',
-  },
-  pickerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  monthsContainer: {
-    maxHeight: 300,
-  },
-  monthOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginBottom: 8,
-    backgroundColor: '#f9fafb',
-  },
-  selectedMonthOption: {
-    backgroundColor: '#3b82f6',
-  },
-  monthOptionText: {
-    fontSize: 16,
-    color: '#374151',
-    textAlign: 'center',
-  },
-  selectedMonthOptionText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  yearSelectorContainer: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  yearSelectorTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 10,
-  },
-  yearsContainer: {
-    flexDirection: 'row',
-  },
-  yearOption: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginRight: 8,
-    backgroundColor: '#f3f4f6',
-  },
-  yearOptionText: {
-    fontSize: 14,
-    color: '#374151',
-  },
-  selectedYearOptionText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  pickerCloseButton: {
-    marginTop: 20,
-    backgroundColor: '#ef4444',
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-  },
-  pickerCloseButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  
-  // Period dropdown styles
-  periodDropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    minWidth: 100,
-  },
-  periodDropdownText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#374151',
-    marginRight: 4,
-  },
-  yearButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#fff',
-    marginRight: 4,
-  },
-  periodPickerDropdown: {
-    position: 'absolute',
-    top: 120,
-    left: '15%',
-    width: '45%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 1000,
-    maxHeight: 300,
-  },
-  periodOption: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginBottom: 2,
-  },
-  periodOptionSelected: {
-    backgroundColor: '#3b82f6',
-  },
-  periodOptionDisabled: {
-    opacity: 0.5,
-  },
-  periodOptionText: {
-    fontSize: 13,
-    color: '#374151',
-  },
-  periodOptionTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  periodOptionTextDisabled: {
-    color: '#9ca3af',
-  },
-
-  // MODAL DATE PICKER STYLES
   dateSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-    flex: 1,
-    maxWidth: '70%',
+    gap: 8,
   },
+  
+  weeklyChartDate: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  
+  pieChartWrapper: {
+    position: 'relative',
+  },
+  
+  legendContainer: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingVertical: 4,
+  },
+  
+  legendColor: {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  
+  legendText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#374151',
+  },
+  
+  legendAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  
+  emptyPieChart: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  
+  emptyPieChartText: {
+    fontSize: 16,
+    color: '#9ca3af',
+    marginTop: 12,
+  },
+  
+  // Date Picker Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  datePickerModal: {
+  
+  modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
+    borderRadius: 20,
+    padding: 20,
+    width: '90%',
     maxHeight: '80%',
-    minHeight: '50%',
   },
+  
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    marginBottom: 20,
   },
+  
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1f2937',
   },
+  
   modalCloseButton: {
     padding: 8,
     backgroundColor: '#f3f4f6',
     borderRadius: 20,
   },
+  
   modalScrollView: {
     flex: 1,
     paddingHorizontal: 20,
   },
+  
   sectionTitle: {
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
+  
   sectionTitleText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#374151',
   },
+  
   yearGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     paddingVertical: 16,
   },
+  
   yearGridItem: {
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -686,19 +338,23 @@ export const styles = StyleSheet.create({
     minWidth: 80,
     alignItems: 'center',
   },
+  
   yearGridItemSelected: {
     backgroundColor: '#eff6ff',
     borderColor: '#3b82f6',
   },
+  
   yearGridText: {
     fontSize: 14,
     fontWeight: '500',
     color: '#374151',
   },
+  
   yearGridTextSelected: {
     color: '#1d4ed8',
     fontWeight: '600',
   },
+  
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -710,49 +366,56 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 2,
   },
+  
   modalOptionSelected: {
     backgroundColor: '#eff6ff',
     borderColor: '#3b82f6',
     borderWidth: 1,
   },
+  
   modalOptionDisabled: {
     opacity: 0.5,
   },
+  
   modalOptionText: {
     fontSize: 16,
     color: '#374151',
     flex: 1,
   },
+  
   modalOptionTextSelected: {
     color: '#1d4ed8',
     fontWeight: '600',
   },
+  
   modalOptionTextDisabled: {
     color: '#9ca3af',
   },
+  
   selectedCheck: {
     marginLeft: 12,
   },
+  
   futureLabel: {
     fontSize: 12,
     color: '#9ca3af',
     fontStyle: 'italic',
     marginLeft: 12,
   },
-
-  // FIXED - Integrated year indicator (no blue background)
+  
   yearIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent', // Changed from blue to transparent
-    paddingHorizontal: 4, // Reduced padding
+    backgroundColor: 'transparent',
+    paddingHorizontal: 4,
     paddingVertical: 4,
     borderRadius: 6,
   },
+  
   yearText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#9ca3af', // Changed from white to gray to match date text
+    color: '#9ca3af',
     marginRight: 4,
   },
 });

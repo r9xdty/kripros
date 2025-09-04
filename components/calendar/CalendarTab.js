@@ -1,5 +1,5 @@
 // =====================================
-// components/calendar/CalendarTab.js - FIXED WITH PROPER SCROLLING
+// components/calendar/CalendarTab.js - FIXED WITH SPENDING SUPPORT
 // =====================================
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
@@ -12,6 +12,8 @@ import { styles } from '../../styles/calendar';
 
 const CalendarTab = ({
   dailySavings,
+  dailySpending, // Add this prop
+  appMode = 'savings', // Add this prop
   calendarView,
   setCalendarView,
   setSelectedDate,
@@ -65,7 +67,7 @@ const CalendarTab = ({
     <ScrollView 
       style={styles.calendarTabContainer} 
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 120 }} // Extra padding for scroll content
+      contentContainerStyle={{ paddingBottom: 120 }}
     >
       {/* Calendar - ON TOP */}
       <View style={styles.calendarContainer}>
@@ -98,6 +100,8 @@ const CalendarTab = ({
         <CalendarGrid
           days={calendarDays}
           dailySavings={dailySavings}
+          dailySpending={dailySpending}
+          appMode={appMode}
           onDayPress={(day) => {
             setSelectedDate(day);
             setShowCalendarModal(true);
@@ -115,89 +119,98 @@ const CalendarTab = ({
             
             setSelectedWeek({ start: startOfWeek, end: endOfWeek });
           }}
+          showNavigation={false}
           currentMonth={calendarView.month}
         />
       </View>
-      
+
       {/* Weekly Pie Chart - BELOW CALENDAR */}
       {selectedWeek && (
-        <WeeklyPieChart
-          dailySavings={dailySavings}
-          weekStart={selectedWeek.start}
-          weekEnd={selectedWeek.end}
-          currentMonth={calendarView.month}
-          currentYear={calendarView.year}
-        />
+        <View style={styles.weeklyChartContainer}>
+          <Text style={styles.weeklyChartTitle}>Haftalık Tasarruf Dağılımı</Text>
+          <WeeklyPieChart
+            dailySavings={dailySavings}
+            weekStart={selectedWeek.start}
+            weekEnd={selectedWeek.end}
+            currentMonth={calendarView.month}
+            currentYear={calendarView.year}
+          />
+        </View>
       )}
 
       {/* Month/Year Picker Modal */}
       <Modal
         visible={showDatePicker}
+        animationType="slide"
         transparent={true}
-        animationType="fade"
         onRequestClose={() => setShowDatePicker(false)}
       >
         <TouchableOpacity 
-          style={styles.pickerOverlay}
+          style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setShowDatePicker(false)}
         >
-          <View style={styles.pickerContainer}>
-            <Text style={styles.pickerTitle}>Tarih Seçin</Text>
-            
-            <ScrollView style={styles.monthsContainer} showsVerticalScrollIndicator={false}>
-              {MONTH_NAMES.map((month, index) => (
-                <TouchableOpacity
-                  key={month}
-                  style={[
-                    styles.monthOption,
-                    calendarView.month === index && styles.selectedMonthOption
-                  ]}
-                  onPress={() => handleMonthYearSelect(index, calendarView.year)}
-                >
-                  <Text style={[
-                    styles.monthOptionText,
-                    calendarView.month === index && styles.selectedMonthOptionText
-                  ]}>
-                    {month}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            
-            <View style={styles.yearSelectorContainer}>
-              <Text style={styles.yearSelectorTitle}>Yıl:</Text>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                style={styles.yearsContainer}
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Tarih Seç</Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setShowDatePicker(false)}
               >
+                <Icon name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScrollView}>
+              {/* Year Selection */}
+              <View style={styles.sectionTitle}>
+                <Text style={styles.sectionTitleText}>Yıl</Text>
+              </View>
+              <View style={styles.yearGrid}>
                 {years.map(year => (
                   <TouchableOpacity
                     key={year}
                     style={[
-                      styles.yearOption,
-                      calendarView.year === year && styles.selectedYearOption
+                      styles.yearGridItem,
+                      calendarView.year === year && styles.yearGridItemSelected
                     ]}
                     onPress={() => handleMonthYearSelect(calendarView.month, year)}
                   >
                     <Text style={[
-                      styles.yearOptionText,
-                      calendarView.year === year && styles.selectedYearOptionText
+                      styles.yearGridText,
+                      calendarView.year === year && styles.yearGridTextSelected
                     ]}>
                       {year}
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.pickerCloseButton}
-              onPress={() => setShowDatePicker(false)}
-            >
-              <Text style={styles.pickerCloseButtonText}>Kapat</Text>
-            </TouchableOpacity>
+              </View>
+              
+              {/* Month Selection */}
+              <View style={styles.sectionTitle}>
+                <Text style={styles.sectionTitleText}>Ay</Text>
+              </View>
+              {MONTH_NAMES.map((month, index) => (
+                <TouchableOpacity
+                  key={month}
+                  style={[
+                    styles.modalOption,
+                    calendarView.month === index && styles.modalOptionSelected
+                  ]}
+                  onPress={() => handleMonthYearSelect(index, calendarView.year)}
+                >
+                  <Text style={[
+                    styles.modalOptionText,
+                    calendarView.month === index && styles.modalOptionTextSelected
+                  ]}>
+                    {month}
+                  </Text>
+                  {calendarView.month === index && (
+                    <Icon name="checkmark" size={20} color="#3b82f6" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
