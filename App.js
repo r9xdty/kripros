@@ -1,5 +1,5 @@
 // =====================================
-// App.js - FIXED DRAWER VERSION
+// App.js - FINAL VERSION WITH CALENDAR-BASED SPENDING
 // =====================================
 import React, { useState } from 'react';
 import { SafeAreaView, StatusBar, ScrollView, View } from 'react-native';
@@ -10,6 +10,7 @@ import DashboardTab from './components/dashboard/DashboardTab';
 import CalendarTab from './components/calendar/CalendarTab';
 import HistoryTab from './components/history/HistoryTab';
 import AddSavingModal from './components/modals/AddSavingModal';
+import AddSpendingModal from './components/modals/AddSpendingModal';
 import MySavingsModal from './components/modals/MySavingsModal';
 import CalendarDayModal from './components/modals/CalendarDayModal';
 import { styles } from './styles/common';
@@ -22,10 +23,12 @@ const App = () => {
   const [dailySpending, setDailySpending] = useState({});
   const [appMode, setAppMode] = useState('savings');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddSavingModal, setShowAddSavingModal] = useState(false);
+  const [showAddSpendingModal, setShowAddSpendingModal] = useState(false);
   const [showSavingsModal, setShowSavingsModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedSpendingDate, setSelectedSpendingDate] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editingItem, setEditingItem] = useState({ 
     name: '', 
@@ -45,6 +48,17 @@ const App = () => {
   // Get current data based on mode
   const currentData = appMode === 'savings' ? dailySavings : dailySpending;
   const setCurrentData = appMode === 'savings' ? setDailySavings : setDailySpending;
+
+  // Handle adding spending from calendar
+  const handleAddSpendingFromCalendar = (date) => {
+    setSelectedSpendingDate(date);
+    setShowAddSpendingModal(true);
+  };
+
+  // Handle add button for savings mode
+  const handleAddSaving = () => {
+    setShowAddSavingModal(true);
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -69,7 +83,7 @@ const App = () => {
                   currentData={currentData}
                   chartView={chartView}
                   setChartView={setChartView}
-                  setShowAddModal={setShowAddModal}
+                  setShowAddModal={handleAddSaving}
                   setShowSavingsModal={setShowSavingsModal}
                   setSelectedDate={setSelectedDate}
                   setShowCalendarModal={setShowCalendarModal}
@@ -119,12 +133,21 @@ const App = () => {
 
       {/* Modals */}
       <AddSavingModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        visible={showAddSavingModal}
+        onClose={() => setShowAddSavingModal(false)}
         savings={savings}
         setSavings={setSavings}
         appMode={appMode}
         theme={theme}
+      />
+
+      {/* Spending Modal - receives selected date */}
+      <AddSpendingModal
+        visible={showAddSpendingModal}
+        onClose={() => setShowAddSpendingModal(false)}
+        selectedDate={selectedSpendingDate || new Date()}
+        dailySpending={dailySpending}
+        setDailySpending={setDailySpending}
       />
 
       <MySavingsModal
@@ -142,6 +165,7 @@ const App = () => {
         theme={theme}
       />
 
+      {/* Calendar Day Modal with spending handler */}
       <CalendarDayModal
         visible={showCalendarModal}
         onClose={() => setShowCalendarModal(false)}
@@ -153,6 +177,7 @@ const App = () => {
         setDailySpending={setDailySpending}
         appMode={appMode}
         theme={theme}
+        onAddSpending={handleAddSpendingFromCalendar}
       />
     </SafeAreaView>
   );

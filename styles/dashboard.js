@@ -201,6 +201,25 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  // Spending Mode Instructions
+  spendingInstructions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fef2f2',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
+  spendingInstructionsText: {
+    fontSize: 14,
+    color: '#dc2626',
+    fontWeight: '500',
+    marginLeft: 8,
+  },
   // Tab indicators
 tabIndicators: {
   flexDirection: 'row',

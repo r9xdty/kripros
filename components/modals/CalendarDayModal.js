@@ -1,5 +1,5 @@
 // =====================================
-// components/modals/CalendarDayModal.js - FIXED FOR BOTH MODES
+// components/modals/CalendarDayModal.js - MULTIPLE ADD SUPPORT
 // =====================================
 import React, { useState, useEffect } from 'react';
 import {
@@ -17,6 +17,7 @@ import {
 import Icon from '../common/Icon';
 import { formatDate } from '../../utils/dateUtils';
 import { getDayTotal } from '../../utils/savingsUtils';
+import { getDaySpendingTotal } from '../../utils/spendingUtils';
 import { getRecommendedSavings, FREQUENCY_LABELS } from '../../utils/recommendationUtils';
 import { styles } from '../../styles/modals';
 
@@ -27,14 +28,15 @@ const CalendarDayModal = ({
   savings,
   dailySavings,
   setDailySavings,
-  appMode = 'savings',  // Add default value
+  appMode = 'savings',
   theme,
-  dailySpending,        // Add for spending mode
-  setDailySpending      // Add for spending mode
+  dailySpending,
+  setDailySpending,
+  onAddSpending
 }) => {
   const [recommendations, setRecommendations] = useState([]);
+  const [addedToday, setAddedToday] = useState(new Set()); // Track what was added in this session
   
-  // Determine which data to use based on mode
   const currentDailyData = appMode === 'savings' ? dailySavings : (dailySpending || {});
   const setCurrentDailyData = appMode === 'savings' ? setDailySavings : (setDailySpending || setDailySavings);
   const itemLabel = appMode === 'savings' ? 'tasarruf' : 'harcama';
@@ -53,9 +55,15 @@ const CalendarDayModal = ({
     return () => backHandler.remove();
   }, [visible, onClose]);
   
+  // Reset added items when modal opens/closes
+  useEffect(() => {
+    if (!visible) {
+      setAddedToday(new Set());
+    }
+  }, [visible]);
+  
   useEffect(() => {
     if (selectedDate && visible && appMode === 'savings') {
-      // Only get recommendations for savings mode
       const recs = getRecommendedSavings(savings || [], currentDailyData || {}, selectedDate);
       setRecommendations(recs);
     } else {
@@ -78,77 +86,77 @@ const CalendarDayModal = ({
       newDailyData[dateStr] = [];
     }
     
-    const newItem = {
+    // Create unique instance with timestamp
+    const addedItem = {
       ...item,
-      addedAt: new Date().toISOString(),
-      uniqueId: Date.now() + Math.random(),
-      action: 'added'
+      uniqueId: Date.now() + Math.random(), // Ensure unique ID
+      action: 'added',
+      addedAt: new Date().toISOString()
     };
     
-    newDailyData[dateStr].push(newItem);
+    newDailyData[dateStr].push(addedItem);
     setCurrentDailyData(newDailyData);
     
-    // Show quick success message
+    // Track this addition for visual feedback
+    setAddedToday(prev => new Set([...prev, item.id]));
+    
+    // Show success feedback
     Alert.alert(
-      '✓ Eklendi', 
-      `${item.name} başarıyla eklendi!`,
-      [{ text: 'Tamam', style: 'default' }],
+      'Başarılı',
+      `${item.name} bu güne eklendi!`,
+      [{ text: 'Tamam' }],
       { cancelable: true }
     );
   };
-
-  const handleRemoveFromDate = (dateStr, uniqueId) => {
+  
+  const handleRemoveFromDate = (uniqueId) => {
     Alert.alert(
-      'Kaldır',
-      `Bu ${itemLabel}u kaldırmak istediğinizden emin misiniz?`,
+      'Sil',
+      'Bu kaydı silmek istediğinizden emin misiniz?',
       [
         { text: 'İptal', style: 'cancel' },
-        { 
-          text: 'Kaldır', 
+        {
+          text: 'Sil',
           style: 'destructive',
           onPress: () => {
+            const dateStr = formatDate(selectedDate);
             const newDailyData = { ...currentDailyData };
+            
             if (newDailyData[dateStr]) {
-              const removedItem = newDailyData[dateStr].find(s => s.uniqueId === uniqueId);
-              
-              newDailyData[dateStr] = newDailyData[dateStr].filter(s => s.uniqueId !== uniqueId);
+              newDailyData[dateStr] = newDailyData[dateStr].filter(item => item.uniqueId !== uniqueId);
               if (newDailyData[dateStr].length === 0) {
                 delete newDailyData[dateStr];
               }
-              
-              if (removedItem) {
-                const removalRecord = {
-                  ...removedItem,
-                  action: 'removed',
-                  removedAt: new Date().toISOString(),
-                  uniqueId: Date.now() + Math.random()
-                };
-                
-                if (!newDailyData[dateStr + '_removed']) {
-                  newDailyData[dateStr + '_removed'] = [];
-                }
-                newDailyData[dateStr + '_removed'].push(removalRecord);
-              }
+              setCurrentDailyData(newDailyData);
             }
-            setCurrentDailyData(newDailyData);
           }
         }
       ]
     );
   };
 
+  const handleAddSpendingPress = () => {
+    if (onAddSpending) {
+      onClose();
+      setTimeout(() => {
+        onAddSpending(selectedDate);
+      }, 300);
+    }
+  };
+  
   if (!selectedDate) return null;
-
+  
   const dateStr = formatDate(selectedDate);
   const dayItems = currentDailyData[dateStr] || [];
-  const dayTotal = getDayTotal(selectedDate, currentDailyData);
+  const dayTotal = appMode === 'savings' 
+    ? getDayTotal(selectedDate, currentDailyData)
+    : getDaySpendingTotal(selectedDate, currentDailyData);
   
-  // For spending mode, we don't have predefined items like savings
-  // So we skip the recommendations section
-  const recommendedIds = recommendations.map(r => r.id);
-  const regularItems = appMode === 'savings' 
-    ? (savings || []).filter(s => !recommendedIds.includes(s.id))
-    : [];
+  // Don't filter out already added items - allow multiple additions
+  const regularItems = savings || [];
+
+  const iconColor = appMode === 'savings' ? '#10b981' : '#ef4444';
+  const totalColor = appMode === 'savings' ? '#10b981' : '#ef4444';
 
   return (
     <Modal
@@ -158,10 +166,11 @@ const CalendarDayModal = ({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.modalContainer}>
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
+          style={styles.modalContent}
         >
+          {/* Header */}
           <View style={styles.modalHeader}>
             <TouchableOpacity
               style={styles.modalCloseButton}
@@ -171,99 +180,113 @@ const CalendarDayModal = ({
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>
-              {selectedDate?.toLocaleDateString('tr-TR', { 
+              {selectedDate.toLocaleDateString('tr-TR', { 
                 day: 'numeric', 
                 month: 'long', 
-                year: 'numeric' 
+                year: 'numeric',
+                weekday: 'long'
               })}
             </Text>
             <View style={{ width: 40 }} />
           </View>
           
-          <ScrollView 
-            style={styles.modalContent} 
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
-          >
-            {/* Total for the day */}
-            <View style={styles.dayTotalContainer}>
-              <Text style={styles.dayTotalLabel}>Bu günkü {itemLabel}</Text>
-              <Text style={[
-                styles.dayTotalAmount,
-                { color: appMode === 'savings' ? '#10b981' : '#ef4444' }
-              ]}>
-                {dayTotal.toFixed(2)} ₺
+          {/* Day Total Card */}
+          <View style={[styles.dayTotalCard, { 
+            backgroundColor: appMode === 'savings' ? '#f0fdf4' : '#fef2f2',
+            borderColor: appMode === 'savings' ? '#86efac' : '#fca5a5',
+          }]}>
+            <Icon name={appMode === 'savings' ? 'wallet' : 'card'} size={24} color={iconColor} />
+            <View style={styles.dayTotalInfo}>
+              <Text style={styles.dayTotalLabel}>
+                Günlük {itemLabelCapital} Toplamı
+              </Text>
+              <Text style={[styles.dayTotalAmount, { color: totalColor }]}>
+                {appMode === 'savings' ? '+' : '-'}{dayTotal.toFixed(2)} ₺
               </Text>
             </View>
+          </View>
+          
+          <ScrollView 
+            style={styles.modalScrollContent}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 40 }}
+          >
+            {/* ADD SPENDING BUTTON FOR SPENDING MODE */}
+            {appMode === 'spending' && (
+              <TouchableOpacity 
+                style={styles.addSpendingButton}
+                onPress={handleAddSpendingPress}
+              >
+                <Icon name="add-circle" size={24} color="#fff" />
+                <Text style={styles.addSpendingButtonText}>Harcama Ekle</Text>
+              </TouchableOpacity>
+            )}
             
-            {/* Already added items */}
+            {/* Day's Items */}
             {dayItems.length > 0 && (
               <View style={styles.daySavingsContainer}>
-                <Text style={styles.daySavingsTitle}>
-                  Bu gün eklenen {itemLabel}lar:
-                </Text>
-                <ScrollView style={{ maxHeight: 200 }}>
-                  {dayItems.map((item, index) => (
-                    <View key={item.uniqueId || index} style={styles.daySavingItem}>
-                      <View style={styles.daySavingInfo}>
-                        <Text style={styles.daySavingName}>{item.name}</Text>
-                        <Text style={[
-                          styles.daySavingAmount,
-                          { color: appMode === 'savings' ? '#10b981' : '#ef4444' }
-                        ]}>
-                          {item.amount} ₺
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Bugünün {itemLabel}ları</Text>
+                  <Text style={styles.sectionCount}>{dayItems.length} kayıt</Text>
+                </View>
+                {dayItems.map((item, index) => (
+                  <View key={item.uniqueId || `${item.id}-${index}`} style={styles.daySavingCard}>
+                    <View style={styles.daySavingInfo}>
+                      <Text style={styles.daySavingName}>{item.name}</Text>
+                      <View style={styles.daySavingMeta}>
+                        <Text style={[styles.daySavingAmount, { color: totalColor }]}>
+                          {appMode === 'savings' ? '+' : '-'}{item.amount} ₺
                         </Text>
+                        {item.addedAt && (
+                          <Text style={styles.daySavingTime}>
+                            {new Date(item.addedAt).toLocaleTimeString('tr-TR', { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </Text>
+                        )}
                       </View>
-                      <TouchableOpacity
-                        style={styles.removeButton}
-                        onPress={() => handleRemoveFromDate(dateStr, item.uniqueId)}
-                      >
-                        <Icon name="trash" size={16} color="#ef4444" />
-                      </TouchableOpacity>
                     </View>
-                  ))}
-                </ScrollView>
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => handleRemoveFromDate(item.uniqueId)}
+                    >
+                      <Icon name="trash" size={18} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
               </View>
             )}
             
             {/* Recommendations - Only for savings mode */}
             {appMode === 'savings' && recommendations.length > 0 && (
               <View style={styles.recommendationsContainer}>
-                <Text style={styles.recommendationsTitle}>Önerilen {itemLabel}lar:</Text>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Önerilen Tasarruflar</Text>
+                  <Icon name="sparkles" size={16} color="#fbbf24" />
+                </View>
                 {recommendations.map(rec => (
                   <TouchableOpacity
                     key={rec.id}
-                    style={[styles.recommendationItem, rec.addedToday && styles.recommendationItemAdded]}
-                    onPress={() => !rec.addedToday && handleAddToDate(rec)}
-                    disabled={rec.addedToday}
+                    style={[styles.recommendationCard, addedToday.has(rec.id) && styles.addedCard]}
+                    onPress={() => handleAddToDate(rec)}
                   >
                     <View style={styles.recommendationInfo}>
-                      <Text style={[
-                        styles.recommendationName,
-                        rec.addedToday && styles.recommendationNameAdded
-                      ]}>
-                        {rec.name}
-                      </Text>
-                      <Text style={styles.recommendationFrequency}>
-                        {FREQUENCY_LABELS[rec.frequency]} • {rec.reason}
-                      </Text>
+                      <Text style={styles.recommendationName}>{rec.name}</Text>
+                      <View style={styles.frequencyBadge}>
+                        <Text style={styles.frequencyBadgeText}>
+                          {FREQUENCY_LABELS[rec.frequency]}
+                        </Text>
+                      </View>
                     </View>
                     <View style={styles.recommendationRight}>
-                      <Text style={[
-                        styles.recommendationAmount,
-                        rec.addedToday && styles.recommendationAmountAdded
-                      ]}>
-                        {rec.amount} ₺
-                      </Text>
-                      {rec.addedToday ? (
-                        <Icon name="checkmark" size={20} color="#10b981" />
+                      <Text style={styles.recommendationAmount}>+{rec.amount} ₺</Text>
+                      {addedToday.has(rec.id) ? (
+                        <Icon name="checkmark-circle" size={20} color="#10b981" />
                       ) : (
-                        <TouchableOpacity
-                          style={styles.addRecommendationButton}
-                          onPress={() => handleAddToDate(rec)}
-                        >
-                          <Icon name="add" size={20} color="#fff" />
-                        </TouchableOpacity>
+                        <View style={styles.addButton}>
+                          <Icon name="add" size={18} color="#10b981" />
+                        </View>
                       )}
                     </View>
                   </TouchableOpacity>
@@ -271,14 +294,17 @@ const CalendarDayModal = ({
               </View>
             )}
             
-            {/* Regular items - Only for savings mode */}
+            {/* All Savings - Only for savings mode */}
             {appMode === 'savings' && regularItems.length > 0 && (
               <View style={styles.allSavingsContainer}>
-                <Text style={styles.allSavingsTitle}>Tüm {itemLabel}lar:</Text>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Tüm Tasarruflar</Text>
+                  <Text style={styles.sectionCount}>{regularItems.length} öğe</Text>
+                </View>
                 {regularItems.map(item => (
                   <TouchableOpacity
                     key={item.id}
-                    style={styles.savingOption}
+                    style={[styles.savingCard, addedToday.has(item.id) && styles.addedCard]}
                     onPress={() => handleAddToDate(item)}
                   >
                     <View style={styles.savingOptionInfo}>
@@ -287,21 +313,44 @@ const CalendarDayModal = ({
                         {FREQUENCY_LABELS[item.frequency]}
                       </Text>
                     </View>
-                    <Text style={styles.savingOptionAmount}>{item.amount} ₺</Text>
+                    <View style={styles.savingOptionRight}>
+                      <Text style={styles.savingOptionAmount}>+{item.amount} ₺</Text>
+                      {addedToday.has(item.id) ? (
+                        <Icon name="checkmark-done" size={16} color="#10b981" />
+                      ) : (
+                        <Icon name="add-circle-outline" size={20} color="#10b981" />
+                      )}
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
             )}
             
-            {/* Empty state for spending mode */}
-            {appMode === 'spending' && dayItems.length === 0 && (
+            {/* Empty state */}
+            {dayItems.length === 0 && appMode === 'savings' && regularItems.length === 0 && (
               <View style={styles.emptyStateContainer}>
-                <Icon name="card" size={48} color="#d1d5db" />
+                <View style={styles.emptyStateIcon}>
+                  <Icon name="wallet-outline" size={48} color="#d1d5db" />
+                </View>
                 <Text style={styles.emptyStateText}>
-                  Bu gün için henüz harcama eklenmemiş
+                  Henüz tasarruf tanımlanmamış
                 </Text>
                 <Text style={styles.emptyStateSubtext}>
-                  Ana sayfadan harcama ekleyebilirsiniz
+                  Ana sayfadan tasarruf ekleyebilirsiniz
+                </Text>
+              </View>
+            )}
+
+            {dayItems.length === 0 && appMode === 'spending' && (
+              <View style={styles.emptyStateContainer}>
+                <View style={styles.emptyStateIcon}>
+                  <Icon name="card-outline" size={48} color="#d1d5db" />
+                </View>
+                <Text style={styles.emptyStateText}>
+                  Bu güne henüz harcama eklenmemiş
+                </Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Yukarıdaki butona tıklayarak başlayın
                 </Text>
               </View>
             )}

@@ -214,6 +214,368 @@ export const styles = StyleSheet.create({
     color: '#1e40af',
     fontWeight: '500',
   },
+  // Day Total Card
+  dayTotalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  dayTotalInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  dayTotalLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  dayTotalAmount: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#10b981',
+  },
+
+  // Section Headers
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  sectionCount: {
+    fontSize: 13,
+    color: '#6b7280',
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+
+  // Day Savings Container
+  daySavingsContainer: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+
+  // Day Saving Card
+  daySavingCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  daySavingInfo: {
+    flex: 1,
+  },
+  daySavingName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  daySavingMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  daySavingAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  daySavingTime: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  removeButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#fef2f2',
+  },
+
+  // Recommendations
+  recommendationsContainer: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  recommendationCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fefce8',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#fde047',
+  },
+  addedCard: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#86efac',
+  },
+  recommendationInfo: {
+    flex: 1,
+  },
+  recommendationName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  frequencyBadge: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  frequencyBadgeText: {
+    fontSize: 11,
+    color: '#1e40af',
+    fontWeight: '600',
+  },
+  recommendationRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  recommendationAmount: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  addButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#f0fdf4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#10b981',
+  },
+
+  // All Savings Container
+  allSavingsContainer: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+
+  // Saving Cards
+  savingCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  savingOptionInfo: {
+    flex: 1,
+  },
+  savingOptionName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 2,
+  },
+  savingOptionFrequency: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  savingOptionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  savingOptionAmount: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#059669',
+  },
+
+  // Add Spending Button
+  addSpendingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ef4444',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 24,
+    shadowColor: '#ef4444',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  addSpendingButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+    marginLeft: 8,
+  },
+
+  // Empty State
+  emptyStateContainer: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyStateIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f9fafb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+
+  // Modal Scroll Content
+  modalScrollContent: {
+    flex: 1,
+  },
+  // Add Spending Button in Calendar Modal
+  addSpendingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ef4444',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  addSpendingButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 8,
+  },
+
+  // Date Display Card
+  dateDisplayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
+  dateDisplayText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#dc2626',
+    marginLeft: 10,
+  },
+
+  // Quick Amount Container
+  quickAmountContainer: {
+    marginBottom: 20,
+  },
+  quickAmountLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  quickAmountButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  quickAmountButton: {
+    flex: 1,
+    minWidth: '22%',
+    margin: 4,
+    padding: 12,
+    borderWidth: 2,
+    borderColor: '#ef4444',
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  quickAmountButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ef4444',
+  },
+
+  // Day Saving Category (for spending items)
+  daySavingCategory: {
+    fontSize: 11,
+    color: '#6b7280',
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+
   
   // Regular Savings Section
   addSavingSection: {
