@@ -1,10 +1,16 @@
 // =====================================
-// styles/calendar.js - MODERN CALENDAR STYLES
+// styles/calendar.js - COMPLETELY FIXED ALIGNMENT
 // =====================================
 import { StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const dayWidth = (width - 60) / 7; // Account for padding
+
+// CRITICAL FIX: Proper width calculation
+// Container: marginHorizontal(20*2=40) + padding(16*2=32) = 72 total reduction
+// Available width for calendar = width - 72
+// Each day should take exactly 1/7 of available width
+const availableWidth = width - 72;
+const dayWidth = availableWidth / 7;
 
 export const styles = StyleSheet.create({
   // Container
@@ -29,8 +35,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 4,
+    marginBottom: 16,
   },
   calendarTitle: {
     fontSize: 20,
@@ -51,156 +56,130 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Week Days
+  // Week Days Header - FIXED: No flex, exact width
   weekDaysHeader: {
     flexDirection: 'row',
-    marginBottom: 12,
-    paddingBottom: 12,
+    marginBottom: 8,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
   weekDayWrapper: {
-    flex: 1,
+    width: dayWidth, // FIXED: Exact width, no flex
     alignItems: 'center',
+    justifyContent: 'center',
   },
   weekDayText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: '#9ca3af',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   weekendDayText: {
     color: '#ef4444',
   },
 
-  // Calendar Grid
+  // Calendar Grid - FIXED: No gaps, no padding
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
 
-  // Day Cells
+  // Day Cells - FIXED: Exact width, minimal padding
   calendarDayWrapper: {
-    width: dayWidth,
-    height: dayWidth + 10,
-    padding: 2,
+    width: dayWidth, // FIXED: Exact width
+    height: dayWidth + 8,
+    paddingVertical: 1, // Minimal vertical spacing only
   },
   calendarDayInner: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 8,
     backgroundColor: '#fafafa',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+  },
+  
+  // Empty day cells
+  emptyDay: {
+    backgroundColor: 'transparent',
+  },
+
+  // Day states
+  dayWithData: {
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: '#e5e7eb',
   },
-
-  // Day States
-  todayCalendarDay: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#3b82f6',
+  today: {
+    backgroundColor: '#dbeafe',
     borderWidth: 2,
+    borderColor: '#3b82f6',
   },
-  hasDataDay: {
-    backgroundColor: '#f0fdf4',
-    borderColor: '#bbf7d0',
+  futureDay: {
+    opacity: 0.5,
   },
-  weekendDay: {
-    backgroundColor: '#fef2f2',
-  },
-  futureDateDisabled: {
-    backgroundColor: '#f9fafb',
-    opacity: 0.4,
-  },
-  otherMonthDay: {
-    opacity: 0.3,
-  },
-
-  // Today Indicator
-  todayIndicator: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-  },
-  todayDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#3b82f6',
-  },
-
-  // Day Text
-  calendarDayText: {
-    fontSize: 15,
+  dayText: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
   },
   todayText: {
-    color: '#3b82f6',
+    color: '#1e40af',
     fontWeight: '700',
   },
-  hasDataText: {
-    color: '#059669',
-  },
-  weekendText: {
-    color: '#dc2626',
-  },
-  futureDateText: {
-    color: '#d1d5db',
-  },
-  otherMonthText: {
+  futureDayText: {
     color: '#9ca3af',
   },
 
-  // Data Indicators
+  // Savings/Spending indicators
   dataIndicators: {
-    position: 'absolute',
-    bottom: 8,
-    flexDirection: 'column',
+    flexDirection: 'row',
     gap: 2,
+    marginTop: 2,
+    alignItems: 'center',
   },
-  savingIndicator: {
-    backgroundColor: '#10b981',
+  savingsIndicator: {
+    backgroundColor: '#d1fae5',
     borderRadius: 6,
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
     paddingVertical: 1,
   },
-  savingIndicatorText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#fff',
+  savingsIndicatorText: {
+    fontSize: 7,
+    fontWeight: '600',
+    color: '#059669',
   },
   spendingIndicator: {
-    backgroundColor: '#ef4444',
+    backgroundColor: '#fee2e2',
     borderRadius: 6,
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
     paddingVertical: 1,
   },
   spendingIndicatorText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#fff',
+    fontSize: 7,
+    fontWeight: '600',
+    color: '#dc2626',
   },
 
-  // Activity Dots
+  // Activity dots
   activityDots: {
     position: 'absolute',
-    bottom: 3,
+    bottom: 2,
     flexDirection: 'row',
-    gap: 3,
+    gap: 2,
   },
   savingDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
     backgroundColor: '#10b981',
   },
   spendingDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
     backgroundColor: '#ef4444',
   },
 
@@ -209,11 +188,11 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
-    gap: 20,
+    gap: 16,
   },
   legendItem: {
     flexDirection: 'row',
@@ -316,25 +295,22 @@ export const styles = StyleSheet.create({
     color: '#1f2937',
   },
   weeklyDates: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6b7280',
+    fontWeight: '500',
   },
-
-  // Pie Chart Container
   pieChartCard: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    marginHorizontal: 20,
-    marginVertical: 10,
+    borderRadius: 16,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   // List View
@@ -356,7 +332,7 @@ export const styles = StyleSheet.create({
       height: 1,
     },
     shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowRadius: 4,
     elevation: 2,
   },
   listItemLeft: {
@@ -366,7 +342,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#1f2937',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   listItemCount: {
     fontSize: 12,
@@ -377,39 +353,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Quick Stats
-  quickStatsContainer: {
-    marginHorizontal: 20,
-    marginVertical: 20,
-  },
-  quickStatsTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: 12,
-  },
-  quickStatsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  quickStatCard: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  quickStatLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  quickStatValue: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-
-  // Container
+  // Container for general use
   container: {
     flex: 1,
     backgroundColor: '#f8f9ff',

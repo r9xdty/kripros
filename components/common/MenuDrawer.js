@@ -1,226 +1,137 @@
 // =====================================
-// components/common/MenuDrawer.js - PROPERLY FIXED VERSION
+// components/common/MenuDrawer.js - SAVINGS ONLY VERSION
 // =====================================
-import React, { useEffect, useRef, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Animated, 
-  Dimensions,
-  TouchableWithoutFeedback,
-  ScrollView,
-  Platform
-} from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal, Animated } from 'react-native';
 import Icon from './Icon';
-import { styles } from '../../styles/menuDrawer';
+import { StyleSheet } from 'react-native';
 
-const { width } = Dimensions.get('window');
-const DRAWER_WIDTH = width * 0.75;
-
-const MenuDrawer = ({ isOpen, onClose, appMode, setAppMode }) => {
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [isRendered, setIsRendered] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsRendered(true);
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: -DRAWER_WIDTH,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setIsRendered(false);
-      });
-    }
-  }, [isOpen]);
-
-  const handleModeChange = (mode) => {
-    setAppMode(mode);
-    setTimeout(onClose, 150);
-  };
-
-  // Don't render at all if not needed
-  if (!isRendered) {
-    return null;
-  }
-
+const MenuDrawer = ({ isOpen, onClose }) => {
   return (
-    <View 
-      style={[
-        styles.container,
-        { pointerEvents: isOpen ? 'auto' : 'none' }
-      ]}
+    <Modal
+      visible={isOpen}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
     >
-      {/* Dark Overlay */}
-      <TouchableWithoutFeedback onPress={onClose}>
-        <Animated.View 
-          style={[
-            styles.overlay,
-            {
-              opacity: fadeAnim,
-              pointerEvents: isOpen ? 'auto' : 'none'
-            }
-          ]}
-        />
-      </TouchableWithoutFeedback>
-
-      {/* Sliding Drawer */}
-      <Animated.View 
-        style={[
-          styles.drawer,
-          {
-            transform: [{ translateX: slideAnim }],
-            width: DRAWER_WIDTH,
-          }
-        ]}
-        pointerEvents="box-none"
+      <TouchableOpacity 
+        style={styles.overlay} 
+        activeOpacity={1} 
+        onPress={onClose}
       >
-        <ScrollView 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.drawerContent}
-        >
-          {/* Header with Close Button */}
+        <Animated.View style={styles.drawer}>
+          {/* Header */}
           <View style={styles.drawerHeader}>
-            <TouchableOpacity 
-              onPress={onClose}
-              style={styles.closeButton}
-            >
+            <View style={styles.headerContent}>
+              <Icon name="wallet" size={28} color="#10b981" />
+              <Text style={styles.appName}>Tasarruf Takipçim</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Icon name="close" size={24} color="#6b7280" />
             </TouchableOpacity>
-            <Icon name="wallet" size={32} color="#10b981" />
-            <Text style={styles.drawerTitle}>Tasarruf Takipçim</Text>
-            <Text style={styles.drawerSubtitle}>Paranızı kontrol altında tutun</Text>
           </View>
 
-          {/* Mode Selection */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Uygulama Modu</Text>
-            
-            {/* Savings Mode */}
-            <TouchableOpacity 
-              style={[
-                styles.menuItem,
-                appMode === 'savings' && styles.activeMenuItem
-              ]}
-              onPress={() => handleModeChange('savings')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuItemIcon}>
-                <Icon 
-                  name="wallet" 
-                  size={24} 
-                  color={appMode === 'savings' ? '#10b981' : '#6b7280'} 
-                />
-              </View>
-              <View style={styles.menuItemContent}>
-                <Text style={[
-                  styles.menuItemTitle,
-                  appMode === 'savings' && styles.activeMenuItemTitle
-                ]}>
-                  Tasarruf Takibi
-                </Text>
-                <Text style={styles.menuItemDescription}>
-                  Biriktirdiklerinizi takip edin
-                </Text>
-              </View>
-              {appMode === 'savings' && (
-                <Icon name="checkmark-circle" size={20} color="#10b981" />
-              )}
+          {/* Menu Items */}
+          <View style={styles.menuItems}>
+            <TouchableOpacity style={styles.menuItem}>
+              <Icon name="information-circle" size={20} color="#3b82f6" />
+              <Text style={styles.menuItemText}>Hakkında</Text>
             </TouchableOpacity>
 
-            {/* Spending Mode */}
-            <TouchableOpacity 
-              style={[
-                styles.menuItem,
-                appMode === 'spending' && styles.activeMenuItem
-              ]}
-              onPress={() => handleModeChange('spending')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuItemIcon}>
-                <Icon 
-                  name="card" 
-                  size={24} 
-                  color={appMode === 'spending' ? '#ef4444' : '#6b7280'} 
-                />
-              </View>
-              <View style={styles.menuItemContent}>
-                <Text style={[
-                  styles.menuItemTitle,
-                  appMode === 'spending' && styles.activeMenuItemTitle
-                ]}>
-                  Harcama Takibi
-                </Text>
-                <Text style={styles.menuItemDescription}>
-                  Harcamalarınızı kontrol edin
-                </Text>
-              </View>
-              {appMode === 'spending' && (
-                <Icon name="checkmark-circle" size={20} color="#ef4444" />
-              )}
+            <TouchableOpacity style={styles.menuItem}>
+              <Icon name="help-circle" size={20} color="#3b82f6" />
+              <Text style={styles.menuItemText}>Yardım</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Icon name="settings" size={20} color="#3b82f6" />
+              <Text style={styles.menuItemText}>Ayarlar</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Other Options */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Diğer</Text>
-            
-            <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-              <View style={styles.menuItemIcon}>
-                <Icon name="settings" size={24} color="#6b7280" />
-              </View>
-              <View style={styles.menuItemContent}>
-                <Text style={styles.menuItemTitle}>Ayarlar</Text>
-                <Text style={styles.menuItemDescription}>Uygulama ayarları</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-              <View style={styles.menuItemIcon}>
-                <Icon name="stats-chart" size={24} color="#6b7280" />
-              </View>
-              <View style={styles.menuItemContent}>
-                <Text style={styles.menuItemTitle}>İstatistikler</Text>
-                <Text style={styles.menuItemDescription}>Detaylı raporlar</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-              <View style={styles.menuItemIcon}>
-                <Icon name="information-circle" size={24} color="#6b7280" />
-              </View>
-              <View style={styles.menuItemContent}>
-                <Text style={styles.menuItemTitle}>Hakkında</Text>
-                <Text style={styles.menuItemDescription}>Versiyon 1.0.0</Text>
-              </View>
-            </TouchableOpacity>
+          {/* App Info */}
+          <View style={styles.appInfo}>
+            <Text style={styles.versionText}>Versiyon 1.0.0</Text>
+            <Text style={styles.copyrightText}>© 2025 Tasarruf Takipçim</Text>
           </View>
-        </ScrollView>
-      </Animated.View>
-    </View>
+        </Animated.View>
+      </TouchableOpacity>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+  },
+  drawer: {
+    backgroundColor: '#fff',
+    width: 280,
+    height: '100%',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 30,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  appName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  menuItems: {
+    flex: 1,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+    gap: 12,
+  },
+  menuItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  appInfo: {
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginBottom: 4,
+  },
+  copyrightText: {
+    fontSize: 11,
+    color: '#d1d5db',
+  },
+});
 
 export default MenuDrawer;

@@ -1,40 +1,31 @@
 // =====================================
-// src/components/history/HistoryTab.js - FIXED VERSION
+// components/history/HistoryTab.js - SAVINGS ONLY VERSION
 // =====================================
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
 import Icon from '../common/Icon';
 import HistoryItem from './HistoryItem';
 import { getSavingsHistory } from '../../utils/savingsUtils';
-import { getSpendingHistory } from '../../utils/spendingUtils';
 import { styles } from '../../styles/history';
 
-const HistoryTab = ({ dailySavings, dailySpending, appMode, theme }) => {
-  // Use appropriate history based on app mode
-  const history = appMode === 'savings' 
-    ? getSavingsHistory(dailySavings || {})
-    : getSpendingHistory(dailySpending || {});
-  
-  const title = appMode === 'savings' ? 'Tasarruf Geçmişi' : 'Harcama Geçmişi';
-  const emptyText = appMode === 'savings' 
-    ? 'Henüz tasarruf geçmişi bulunmuyor'
-    : 'Henüz harcama geçmişi bulunmuyor';
-  const emptySubtext = appMode === 'savings'
-    ? 'Tasarruf eklemeye başlayın!'
-    : 'Harcama eklemeye başlayın!';
-  const iconColor = appMode === 'savings' ? '#8b5cf6' : '#ef4444';
+const HistoryTab = ({ dailySavings }) => {
+  const history = getSavingsHistory(dailySavings || {});
 
   if (history.length === 0) {
     return (
       <View style={styles.historyContainer}>
         <View style={styles.historyHeader}>
-          <Icon name="time" size={20} color={iconColor} />
-          <Text style={styles.historyTitle}>{title}</Text>
+          <Icon name="time" size={20} color="#10b981" />
+          <Text style={styles.historyTitle}>Tasarruf Geçmişi</Text>
         </View>
         <View style={styles.emptyHistory}>
           <Icon name="time" size={48} color="#d1d5db" />
-          <Text style={styles.emptyHistoryText}>{emptyText}</Text>
-          <Text style={styles.emptyHistorySubtext}>{emptySubtext}</Text>
+          <Text style={styles.emptyHistoryText}>
+            Henüz tasarruf geçmişi bulunmuyor
+          </Text>
+          <Text style={styles.emptyHistorySubtext}>
+            Tasarruf eklemeye başlayın!
+          </Text>
         </View>
       </View>
     );
@@ -44,8 +35,8 @@ const HistoryTab = ({ dailySavings, dailySpending, appMode, theme }) => {
     <FlatList
       ListHeaderComponent={() => (
         <View style={styles.historyHeader}>
-          <Icon name="time" size={20} color={iconColor} />
-          <Text style={styles.historyTitle}>{title}</Text>
+          <Icon name="time" size={20} color="#10b981" />
+          <Text style={styles.historyTitle}>Tasarruf Geçmişi</Text>
         </View>
       )}
       data={history}
