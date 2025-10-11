@@ -1,8 +1,16 @@
 // =====================================
-// App.js - SAVINGS ONLY VERSION
+// App.js - PRODUCTION VERSION WITH LOCAL STORAGE
 // =====================================
-import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, ScrollView, View } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  SafeAreaView, 
+  StatusBar, 
+  ScrollView, 
+  View, 
+  ActivityIndicator,
+  Text,
+  Alert
+} from 'react-native';
 import TabBar from './components/common/TabBar';
 import HamburgerMenu from './components/common/HamburgerMenu';
 import MenuDrawer from './components/common/MenuDrawer';
@@ -16,10 +24,33 @@ import { styles } from './styles/common';
 import { getTheme } from './utils/theme';
 import { FREQUENCY_TYPES } from './utils/recommendationUtils';
 
+// Import Storage Service
+import {
+  loadSavings,
+  saveSavings,
+  loadDailySavings,
+  saveDailySavings,
+  loadChartView,
+  saveChartView,
+  checkFirstLaunch,
+  loadAppSettings,
+  saveAppSettings
+} from './utils/storage';
+
 const App = () => {
-  // State - Savings only
+  // Core State
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFirstLaunch, setIsFirstLaunch] = useState(false);
   const [savings, setSavings] = useState([]);
   const [dailySavings, setDailySavings] = useState({});
+  const [appSettings, setAppSettings] = useState({
+    notifications: true,
+    currency: 'TRY',
+    language: 'tr',
+    theme: 'light'
+  });
+  
+  // UI State
   const appMode = 'savings'; // Fixed to savings only
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddSavingModal, setShowAddSavingModal] = useState(false);
@@ -39,9 +70,150 @@ const App = () => {
     year: new Date().getFullYear() 
   });
 
-  // Get theme - always savings theme
+  // Auto-save refs to prevent excessive saves
+  const savingsRef = useRef(savings);
+  const dailySavingsRef = useRef(dailySavings);
+  const chartViewRef = useRef(chartView);
+  const saveTimeoutRef = useRef(null);
+
+  // Get theme
   const theme = getTheme('savings');
 
+  // =====================================
+  // INITIAL LOAD
+  // =====================================
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Check if first launch
+      const firstLaunch = await checkFirstLaunch();
+      setIsFirstLaunch(firstLaunch);
+      
+      // Load all data
+      const [loadedSavings, loadedDailySavings, loadedChartView, loadedSettings] = await Promise.all([
+        loadSavings(),
+        loadDailySavings(),
+        loadChartView(),
+        loadAppSettings()
+      ]);
+      
+      setSavings(loadedSavings);
+      setDailySavings(loadedDailySavings);
+      setChartView(loadedChartView);
+      setAppSettings(loadedSettings);
+      
+      // Update refs
+      savingsRef.current = loadedSavings;
+      dailySavingsRef.current = loadedDailySavings;
+      chartViewRef.current = loadedChartView;
+      
+      // Show welcome message if first launch
+      if (firstLaunch) {
+        setTimeout(() => {
+          Alert.alert(
+            'Hoş Geldiniz! 👋',
+            'Kripros ile tasarruflarınızı takip etmeye başlayın. Tüm verileriniz güvenli bir şekilde cihazınızda saklanacak.',
+            [{ text: 'Başlayalım', style: 'default' }]
+          );
+        }, 500);
+      }
+      
+    } catch (error) {
+      console.error('App initialization error:', error);
+      Alert.alert(
+        'Yükleme Hatası',
+        'Veriler yüklenirken bir hata oluştu. Uygulama yine de çalışmaya devam edecek.',
+        [{ text: 'Tamam' }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // =====================================
+  // AUTO-SAVE HANDLERS
+  // =====================================
+  
+  // Auto-save savings
+  useEffect(() => {
+    if (!isLoading && JSON.stringify(savings) !== JSON.stringify(savingsRef.current)) {
+      savingsRef.current = savings;
+      
+      // Debounce save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      saveTimeoutRef.current = setTimeout(() => {
+        saveSavings(savings).then(success => {
+          if (!success) {
+            console.warn('Failed to save savings');
+          }
+        });
+      }, 500);
+    }
+  }, [savings, isLoading]);
+
+  // Auto-save daily savings
+  useEffect(() => {
+    if (!isLoading && JSON.stringify(dailySavings) !== JSON.stringify(dailySavingsRef.current)) {
+      dailySavingsRef.current = dailySavings;
+      
+      // Debounce save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      saveTimeoutRef.current = setTimeout(() => {
+        saveDailySavings(dailySavings).then(success => {
+          if (!success) {
+            console.warn('Failed to save daily savings');
+          }
+        });
+      }, 500);
+    }
+  }, [dailySavings, isLoading]);
+
+  // Auto-save chart view preference
+  useEffect(() => {
+    if (!isLoading && chartView !== chartViewRef.current) {
+      chartViewRef.current = chartView;
+      saveChartView(chartView);
+    }
+  }, [chartView, isLoading]);
+
+  // Auto-save app settings
+  useEffect(() => {
+    if (!isLoading) {
+      saveAppSettings(appSettings);
+    }
+  }, [appSettings, isLoading]);
+
+  // =====================================
+  // LOADING SCREEN
+  // =====================================
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text style={{ marginTop: 16, fontSize: 16, color: '#6b7280' }}>
+            Veriler yükleniyor...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // =====================================
+  // MAIN RENDER
+  // =====================================
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
@@ -72,7 +244,7 @@ const App = () => {
               {activeTab === 'calendar' && (
                 <CalendarTab
                   dailySavings={dailySavings}
-                  dailySpending={{}} // Empty, no spending
+                  dailySpending={{}}
                   appMode="savings"
                   theme={theme}
                   calendarView={calendarView}
@@ -88,7 +260,7 @@ const App = () => {
                 appMode="savings"
                 theme={theme}
                 dailySavings={dailySavings}
-                dailySpending={{}} // Empty, no spending
+                dailySpending={{}}
                 currentData={dailySavings}
               />
             </View>
@@ -106,7 +278,27 @@ const App = () => {
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
         appMode="savings"
-        setAppMode={() => {}} // No mode switching anymore
+        setAppMode={() => {}}
+        appSettings={appSettings}
+        setAppSettings={setAppSettings}
+        onClearData={async () => {
+          Alert.alert(
+            'Verileri Temizle',
+            'Tüm tasarruf verileriniz silinecek. Bu işlem geri alınamaz!',
+            [
+              { text: 'İptal', style: 'cancel' },
+              { 
+                text: 'Sil', 
+                style: 'destructive',
+                onPress: async () => {
+                  setSavings([]);
+                  setDailySavings({});
+                  Alert.alert('Başarılı', 'Tüm veriler temizlendi.');
+                }
+              }
+            ]
+          );
+        }}
       />
 
       {/* Modals - Savings Only */}
@@ -115,8 +307,6 @@ const App = () => {
         onClose={() => setShowAddSavingModal(false)}
         savings={savings}
         setSavings={setSavings}
-        appMode="savings"
-        theme={theme}
       />
 
       <MySavingsModal
@@ -130,8 +320,6 @@ const App = () => {
         setEditingId={setEditingId}
         editingItem={editingItem}
         setEditingItem={setEditingItem}
-        appMode="savings"
-        theme={theme}
       />
 
       <CalendarDayModal
@@ -141,11 +329,11 @@ const App = () => {
         savings={savings}
         dailySavings={dailySavings}
         setDailySavings={setDailySavings}
-        dailySpending={{}} // Empty, no spending
-        setDailySpending={() => {}} // No-op function
+        dailySpending={{}}
+        setDailySpending={() => {}}
         appMode="savings"
         theme={theme}
-        onAddSpending={() => {}} // No-op function
+        onAddSpending={() => {}}
       />
     </SafeAreaView>
   );
