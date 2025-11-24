@@ -96,7 +96,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  
+
   // Empty day cells
   emptyDay: {
     backgroundColor: 'transparent',
@@ -355,5 +355,50 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9ff',
+  },
+
+  // Quick Stats
+  quickStatsContainer: {
+    marginHorizontal: 20,
+    marginVertical: 20,
+    paddingBottom: 20,
+  },
+  quickStatsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  quickStatsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quickStatCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  quickStatLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginTop: 8,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  quickStatValue: {
+    fontSize: 20,
+    fontWeight: '700',
   },
 });
