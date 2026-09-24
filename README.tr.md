@@ -26,7 +26,7 @@ Tamamen cihazda çalışır: hesap yok, sunucu yok, internet gerekmez.
 - **Gelir, harcama ve birikim kayıtları**, düzenlenebilir kategorilerle.
 - **Bütçeler**: harcama kategorilerine aylık sınır. Ana sayfada her bütçenin ne kadarının kullanıldığı görünür; yeni bir harcama %80'i ya da sınırı geçince uyarı çıkar.
 - **Düzenli işlemler**: maaş, kira, abonelik gibi kayıtlar bir kez tanımlanır ("her ayın 5. günü") ve günü gelince kendiliğinden eklenir; uygulama bir süre açılmasa bile. Yaklaşanlar ana sayfada listelenir.
-- **Yedekleme**: tüm kayıtlar tek bir JSON dosyasına aktarılır; başka bir telefonda ya da yeniden kurulumdan sonra karşılama ekranından geri yüklenir.
+- **Yedekleme**: tüm kayıtlar tek bir JSON dosyasına aktarılır; başka bir telefonda ya da yeniden kurulumdan sonra karşılama ekranından geri yüklenir. (Yalnızca telefonda: sadece örnek veri tutan web demosunda yer almaz.)
 - **Birikim alışkanlıkları**: "Kahve almadım · 85 ₺ · günlük" gibi tekrar eden tasarruflar. Zamanı gelenler ana sayfada ve takvimde öneri olarak çıkar, tek dokunuşla eklenir.
 - **Grafikler**: son 7 gün / 5 hafta / 12 ay için gelir, harcama ve birikimi yan yana gösteren çubuk grafik. Aylık dağılım için halka grafik. İkisi de kütüphanesiz, doğrudan SVG ile çizilir.
 - **Takvim**: her günün toplamları; bir güne dokununca o günün kayıtları.
@@ -71,6 +71,7 @@ Her push ve pull request'te GitHub Actions kod denetimini, testleri ve web derle
 App.js              giriş noktası: veri → karşılama ya da ana ekran
 app.json            Expo ayarları
 app.config.js       CI'daki web derlemesine GitHub Pages yolunu ekler
+public/index.html   yükleme ekranını içeren web sayfası şablonu
 src/
   store/            cihazdaki veri deposu (AsyncStorage)
   state/            DataContext: ekranlar için veriler ve işlemler

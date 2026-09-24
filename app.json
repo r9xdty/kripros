@@ -24,7 +24,9 @@
       "package": "com.anonymous.project_kripros"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "lang": "tr",
+      "description": "Birikim, harcama ve gelir takibi: bütçeler, düzenli işlemler, hedefler ve grafikler."
     }
   }
 }

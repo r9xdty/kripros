@@ -31,7 +31,7 @@ It runs fully on the device: no account, no server, no internet needed.
 - **Income, spending and savings** with editable categories.
 - **Budgets**: a monthly limit for any spending category. The overview shows how much of each budget is used, and a notice appears when a new spending passes 80% or the limit.
 - **Recurring income and spending**: salary, rent or subscriptions are set up once (“every month on the 5th”) and recorded automatically when the day comes, even if the app was closed for a while. The next ones are listed on the overview.
-- **Backups**: all records are exported to a single JSON file and can be restored on another phone, or from the welcome screen after a reinstall.
+- **Backups**: all records are exported to a single JSON file and can be restored on another phone, or from the welcome screen after a reinstall. (Phones only: the web demo, which just holds sample data, leaves them out.)
 - **Saving habits**: recurring savings such as “skipped coffee · ₺85 · daily”. Habits that are due are suggested on the overview and in the calendar, and can be added with one tap.
 - **Charts**: a grouped bar chart comparing income, spending and savings over the last 7 days, 5 weeks or 12 months, and a donut chart of the month by category. Both are drawn directly with SVG, without a chart library.
 - **Calendar**: daily totals at a glance; tap a day to see or add its records.
@@ -76,6 +76,7 @@ Every push and pull request runs lint, tests and a web build on GitHub Actions. 
 App.js              entry point: data provider → welcome screen or main app
 app.json            Expo configuration
 app.config.js       adds the GitHub Pages base path to web builds in CI
+public/index.html   web page template with the loading screen
 src/
   store/            on-device store (AsyncStorage)
   state/            DataContext: data and actions for the screens
