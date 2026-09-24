@@ -7,7 +7,7 @@
 A personal finance tracker for savings, spending and income, built with Expo and React Native.<br>
 It runs fully on the device: no account, no server, no internet needed.
 
-**[Live demo](https://r9xdty.github.io/kripros/)** · [Türkçe](README.tr.md)
+**[Live demo](https://mustafaaltuntas.com/kripros/)** · [Türkçe](README.tr.md)
 
 [![CI](https://github.com/r9xdty/kripros/actions/workflows/ci.yml/badge.svg)](https://github.com/r9xdty/kripros/actions/workflows/ci.yml)
 ![Expo SDK 53](https://img.shields.io/badge/Expo-SDK%2053-000020?logo=expo)

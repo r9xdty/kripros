@@ -7,7 +7,7 @@
 Birikimlerini, harcamalarını ve gelirini tek yerde takip eden bir mobil uygulama (Expo / React Native).<br>
 Tamamen cihazda çalışır: hesap yok, sunucu yok, internet gerekmez.
 
-**[Canlı demo](https://r9xdty.github.io/kripros/)** · [English](README.md)
+**[Canlı demo](https://mustafaaltuntas.com/kripros/)** · [English](README.md)
 
 </div>
 
