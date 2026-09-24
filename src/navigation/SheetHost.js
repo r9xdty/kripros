@@ -9,6 +9,7 @@ import GoalSheet from '../sheets/GoalSheet';
 import TemplatesSheet from '../sheets/TemplatesSheet';
 import CategoriesSheet from '../sheets/CategoriesSheet';
 import SettingsSheet from '../sheets/SettingsSheet';
+import RecurringSheet from '../sheets/RecurringSheet';
 
 const SHEETS = {
   transaction: TransactionSheet,
@@ -16,6 +17,7 @@ const SHEETS = {
   goal: GoalSheet,
   templates: TemplatesSheet,
   categories: CategoriesSheet,
+  recurring: RecurringSheet,
   settings: SettingsSheet,
 };
 

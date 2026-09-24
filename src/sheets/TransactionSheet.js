@@ -5,13 +5,26 @@ import DateField from '../components/DateField';
 import { Button, Chip, Field, IconButton, Segmented } from '../components/ui';
 import { useData } from '../state/DataContext';
 import { validateTransaction } from '../domain/transactions';
+import { budgetAlert, budgetStatus } from '../domain/budgets';
 import { useSheets } from '../navigation/sheets';
 import { useToast } from '../components/Toast';
 import { KINDS, KIND_ORDER } from '../domain/constants';
 import { amountToInput, currencySymbol, formatMoney, parseAmount } from '../lib/money';
-import { todayKey } from '../lib/dates';
+import { fromDateKey, todayKey } from '../lib/dates';
 import { confirm } from '../lib/dialogs';
 import { colors, font, radius, spacing } from '../theme';
+
+// Warning to show when a spending pushes this month's budget of its category
+// past 80% or 100%.
+const budgetWarning = (values, previous, { categoriesById, transactions }) => {
+  const category = values.kind === 'spending' && categoriesById[values.category_id];
+  const now = new Date();
+  if (!category || !(category.monthly_budget > 0) || !values.occurred_on.startsWith(todayKey(now).slice(0, 7))) return null;
+  const day = fromDateKey(values.occurred_on);
+  const status = (list) => budgetStatus([category], list, day.getFullYear(), day.getMonth())[0];
+  const others = previous ? transactions.filter((tx) => tx.id !== previous.id) : transactions;
+  return budgetAlert(status(transactions), status([...others, values]));
+};
 
 const PLACEHOLDERS = {
   spending: 'Örn: Migros, kira, fatura',
@@ -68,8 +81,10 @@ export default function TransactionSheet({ transaction, kind: initialKind, date,
       setError(problem);
       return;
     }
+    const warning = budgetWarning(values, transaction, data);
     data.saveTransaction(values);
-    toast(editing ? 'Kayıt güncellendi' : `${KINDS[kind].label} eklendi`);
+    if (warning) toast(warning, { icon: 'warning' });
+    else toast(editing ? 'Kayıt güncellendi' : `${KINDS[kind].label} eklendi`);
     pop();
   };
 

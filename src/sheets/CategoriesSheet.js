@@ -6,9 +6,10 @@ import { Button, Card, EmptyState, Field, IconButton, IconCircle, Segmented } fr
 import { useData } from '../state/DataContext';
 import { CATEGORY_ICONS, KINDS, PALETTE } from '../domain/constants';
 import { confirm } from '../lib/dialogs';
+import { MAX_AMOUNT, amountToInput, formatMoney, parseAmount } from '../lib/money';
 import { colors, font, spacing } from '../theme';
 
-const emptyForm = () => ({ id: null, name: '', icon: 'ellipsis-horizontal', color: PALETTE[0] });
+const emptyForm = () => ({ id: null, name: '', icon: 'ellipsis-horizontal', color: PALETTE[0], budget: '' });
 
 export default function CategoriesSheet({ kind: initialKind = 'spending' }) {
   const data = useData();
@@ -23,10 +24,23 @@ export default function CategoriesSheet({ kind: initialKind = 'spending' }) {
     if (categories.some((c) => c.id !== form.id && c.name.toLocaleLowerCase('tr') === name.toLocaleLowerCase('tr'))) {
       return setError('Bu adda bir kategori zaten var.');
     }
+    let budget = null;
+    if (kind === 'spending' && form.budget.trim()) {
+      budget = parseAmount(form.budget);
+      if (!(budget > 0) || budget > MAX_AMOUNT) return setError('Geçerli bir bütçe gir ya da alanı boş bırak.');
+    }
     const sortOrder = form.id
       ? data.categoriesById[form.id]?.sort_order
       : Math.max(0, ...categories.map((c) => c.sort_order || 0)) + 1;
-    data.saveCategory({ ...(form.id ? { id: form.id } : {}), kind, name, icon: form.icon, color: form.color, sort_order: sortOrder });
+    data.saveCategory({
+      ...(form.id ? { id: form.id } : {}),
+      kind,
+      name,
+      icon: form.icon,
+      color: form.color,
+      sort_order: sortOrder,
+      monthly_budget: budget,
+    });
     setForm(emptyForm());
     setError(null);
     return undefined;
@@ -61,6 +75,17 @@ export default function CategoriesSheet({ kind: initialKind = 'spending' }) {
       <Card style={{ marginBottom: spacing.xl }}>
         <Text style={[font.heading, { marginBottom: spacing.md }]}>{form.id ? 'Kategoriyi düzenle' : 'Yeni kategori'}</Text>
         <Field label="Ad" value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="Örn: Kahve" maxLength={40} />
+        {kind === 'spending' ? (
+          <Field
+            label="Aylık bütçe (isteğe bağlı)"
+            value={form.budget}
+            onChangeText={(budget) => setForm({ ...form, budget })}
+            placeholder="Örn: 3.000"
+            keyboardType="decimal-pad"
+            maxLength={16}
+            hint="Bu kategoride ayda en fazla ne kadar harcamak istiyorsun? %80’e ve sınıra gelince haber verilir."
+          />
+        ) : null}
         <Text style={styles.label}>Simge</Text>
         <View style={styles.grid}>
           {CATEGORY_ICONS.map((icon) => (
@@ -97,12 +122,27 @@ export default function CategoriesSheet({ kind: initialKind = 'spending' }) {
           {categories.map((category) => (
             <View key={category.id} style={styles.row}>
               <IconCircle icon={category.icon} color={category.color} size={36} />
-              <Text style={styles.name}>{category.name}</Text>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {category.name}
+                </Text>
+                {category.monthly_budget > 0 ? (
+                  <Text style={font.small}>Bütçe: {formatMoney(category.monthly_budget, data.currency, { whole: true })} / ay</Text>
+                ) : null}
+              </View>
               <IconButton
                 icon="create-outline"
                 color={colors.textMuted}
                 label="Düzenle"
-                onPress={() => setForm({ id: category.id, name: category.name, icon: category.icon, color: category.color })}
+                onPress={() =>
+                  setForm({
+                    id: category.id,
+                    name: category.name,
+                    icon: category.icon,
+                    color: category.color,
+                    budget: category.monthly_budget > 0 ? amountToInput(category.monthly_budget) : '',
+                  })
+                }
               />
               <IconButton icon="trash-outline" color={colors.danger} label="Sil" onPress={() => remove(category)} />
             </View>
@@ -133,5 +173,5 @@ const styles = StyleSheet.create({
   error: { color: colors.danger, marginTop: spacing.md },
   formActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
-  name: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },
+  name: { fontSize: 15, fontWeight: '600', color: colors.text },
 });

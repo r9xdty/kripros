@@ -78,6 +78,16 @@ export class LocalStore {
     await this.writes;
   }
 
+  // Replaces every record, e.g. when restoring a backup.
+  async replaceAll(tables) {
+    await this.writes;
+    this.tables = { ...emptyTables(), ...tables };
+    this.dirty = { ...emptyDirty(), all: true };
+    this.emit();
+    this.scheduleFlush();
+    await this.writes;
+  }
+
   setRows(table, changed, removedIds) {
     const ids = [...Object.keys(changed), ...removedIds];
     if (ids.length === 0) return;
@@ -92,6 +102,10 @@ export class LocalStore {
     const set = this.dirty.tables.get(table) || new Set();
     for (const id of ids) set.add(id);
     this.dirty.tables.set(table, set);
+    this.scheduleFlush();
+  }
+
+  scheduleFlush() {
     if (this.flushScheduled) return;
     this.flushScheduled = true;
     this.writes = this.writes

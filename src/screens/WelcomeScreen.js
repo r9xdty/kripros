@@ -4,6 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Icon from '../components/Icon';
 import { useData } from '../state/DataContext';
+import { useToast } from '../components/Toast';
+import { BackupError } from '../domain/backup';
+import { notify } from '../lib/dialogs';
 import { colors, radius, spacing } from '../theme';
 
 const FEATURES = [
@@ -15,6 +18,24 @@ const FEATURES = [
 export default function WelcomeScreen() {
   const data = useData();
   const [busy, setBusy] = useState(null);
+
+  const toast = useToast();
+
+  // New phone: bring the data over from a backup file.
+  const restore = async () => {
+    setBusy('restore');
+    try {
+      const backup = await data.readBackupFile();
+      if (backup) {
+        await data.restoreBackup(backup);
+        toast('Yedek geri yüklendi');
+        return;
+      }
+    } catch (error) {
+      notify('Yedek açılamadı', error instanceof BackupError ? error.message : 'Dosya okunamadı.');
+    }
+    setBusy(null);
+  };
 
   const start = (withSamples) => {
     setBusy(withSamples ? 'sample' : 'empty');
@@ -67,6 +88,16 @@ export default function WelcomeScreen() {
           accessibilityRole="button"
         >
           {busy === 'empty' ? <ActivityIndicator color="#fff" /> : <Text style={styles.secondaryText}>Boş başla</Text>}
+        </Pressable>
+        <Pressable onPress={restore} disabled={Boolean(busy)} style={styles.link} accessibilityRole="button" hitSlop={6}>
+          {busy === 'restore' ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Icon name="folder-open-outline" size={16} color="#d1fae5" />
+              <Text style={styles.linkText}>Yedeğin var mı? Geri yükle</Text>
+            </>
+          )}
         </Pressable>
         <Text style={styles.fine}>Örnek verileri istediğin zaman Ayarlar → “Tüm verileri sil” ile temizleyebilirsin.</Text>
       </View>
@@ -125,5 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   secondaryText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  fine: { color: '#a7f3d0', fontSize: 12, textAlign: 'center', marginTop: spacing.sm, lineHeight: 18 },
+  link: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 36, marginTop: spacing.xs },
+  linkText: { color: '#d1fae5', fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
+  fine: { color: '#a7f3d0', fontSize: 12, textAlign: 'center', lineHeight: 18 },
 });

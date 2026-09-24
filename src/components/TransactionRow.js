@@ -8,7 +8,12 @@ import { colors, spacing } from '../theme';
 
 // Describes a transaction for lists: which icon/colour to show and the
 // secondary line (category, habit or goal).
-export const describeTransaction = (tx, { categoriesById = {}, templatesById = {}, goalsById = {} }) => {
+export const describeTransaction = (tx, lookups) => {
+  const info = describeBase(tx, lookups);
+  return tx.recurring_id ? { ...info, subtitle: `${info.subtitle} · Düzenli` } : info;
+};
+
+const describeBase = (tx, { categoriesById = {}, templatesById = {}, goalsById = {} }) => {
   const kind = KINDS[tx.kind];
   if (tx.kind === 'saving') {
     const goal = tx.goal_id ? goalsById[tx.goal_id] : null;

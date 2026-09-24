@@ -37,6 +37,7 @@ describe('dates', () => {
     const now = new Date(2026, 8, 24, 15, 0);
     expect(formatRelativeDay('2026-09-24', now)).toBe('Bugün');
     expect(formatRelativeDay('2026-09-23', now)).toBe('Dün');
+    expect(formatRelativeDay('2026-09-25', now)).toBe('Yarın');
     expect(formatRelativeDay('2026-09-01', now)).toBe('1 Eylül');
     expect(formatRelativeDay('2025-09-01', now)).toBe('1 Eylül 2025');
   });

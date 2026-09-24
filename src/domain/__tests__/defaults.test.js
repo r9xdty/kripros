@@ -31,6 +31,16 @@ test('sample data only references records that exist and has no future dates', (
     expect(tx.amount).toBeGreaterThan(0);
   }
   expect(Object.keys(tables.settings)).toHaveLength(1);
+
+  // Recurring rules point at their next date in the future and created
+  // their past occurrences.
+  for (const rule of Object.values(tables.recurring)) {
+    expect(rule.next_on > toDateKey(now)).toBe(true);
+    expect(transactions.filter((tx) => tx.recurring_id === rule.id).length).toBeGreaterThanOrEqual(5);
+  }
+  const budgeted = Object.values(tables.categories).filter((c) => c.monthly_budget > 0);
+  expect(budgeted.length).toBeGreaterThan(0);
+  expect(budgeted.every((c) => c.kind === 'spending')).toBe(true);
 });
 
 test('generated ids do not collide', () => {
