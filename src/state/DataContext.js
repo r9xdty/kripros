@@ -6,12 +6,12 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import * as Crypto from 'expo-crypto';
 import { SyncEngine } from '../sync/engine';
 import { createPersistence } from '../sync/persistence';
 import { createSupabaseRemote } from '../sync/supabaseRemote';
 import { createMemoryRemote } from '../sync/memoryRemote';
 import { supabase } from '../lib/supabase';
+import { newId } from '../lib/uuid';
 import { DEMO_MODE } from '../config';
 import { seedDemoData } from '../domain/demoData';
 import { buildLegacyImport, markLegacyHandled, readLegacyData } from '../domain/legacyImport';
@@ -58,7 +58,7 @@ export function DataProvider({ user, children }) {
       userId: user.id,
       remote: DEMO_MODE ? createMemoryRemote() : createSupabaseRemote(supabase),
       persistence: createPersistence(AsyncStorage, user.id),
-      newId: () => Crypto.randomUUID(),
+      newId,
       onError: (error) => console.warn('[sync]', error?.message || error),
     });
     let cancelled = false;
@@ -175,7 +175,7 @@ export function DataProvider({ user, children }) {
   const importLegacy = useCallback(async () => {
     const data = await readLegacyData(AsyncStorage);
     if (!data || !engine) return { templates: 0, transactions: 0 };
-    const { templates, transactions } = buildLegacyImport(data, () => Crypto.randomUUID());
+    const { templates, transactions } = buildLegacyImport(data, newId);
     for (const template of templates) engine.upsert('saving_templates', template);
     for (const transaction of transactions) engine.upsert('transactions', transaction);
     await engine.flush();
