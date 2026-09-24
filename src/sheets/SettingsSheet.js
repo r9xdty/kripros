@@ -166,33 +166,35 @@ export default function SettingsSheet() {
         />
       </Card>
 
-      <Card style={styles.card}>
-        <SectionHeader title="Yedekleme" />
-        <Text style={[font.small, styles.paragraph]}>
-          Tüm kayıtların tek bir dosyaya yazılır. Telefon değiştirirken ya da uygulamayı silmeden önce yedek al, sonra buradan
-          geri yükle.
-        </Text>
-        <View style={styles.backupActions}>
-          <Button
-            title="Yedek al"
-            icon="download-outline"
-            variant="secondary"
-            compact
-            loading={busy === 'export'}
-            onPress={exportBackup}
-            style={{ flex: 1 }}
-          />
-          <Button
-            title="Geri yükle"
-            icon="folder-open-outline"
-            variant="secondary"
-            compact
-            loading={busy === 'restore'}
-            onPress={restoreBackup}
-            style={{ flex: 1 }}
-          />
-        </View>
-      </Card>
+      {data.backupsEnabled ? (
+        <Card style={styles.card}>
+          <SectionHeader title="Yedekleme" />
+          <Text style={[font.small, styles.paragraph]}>
+            Tüm kayıtların tek bir dosyaya yazılır. Telefon değiştirirken ya da uygulamayı silmeden önce yedek al, sonra buradan
+            geri yükle.
+          </Text>
+          <View style={styles.backupActions}>
+            <Button
+              title="Yedek al"
+              icon="download-outline"
+              variant="secondary"
+              compact
+              loading={busy === 'export'}
+              onPress={exportBackup}
+              style={{ flex: 1 }}
+            />
+            <Button
+              title="Geri yükle"
+              icon="folder-open-outline"
+              variant="secondary"
+              compact
+              loading={busy === 'restore'}
+              onPress={restoreBackup}
+              style={{ flex: 1 }}
+            />
+          </View>
+        </Card>
+      ) : null}
 
       <Card style={styles.card}>
         <SectionHeader title="Hakkında" />

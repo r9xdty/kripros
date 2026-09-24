@@ -89,16 +89,18 @@ export default function WelcomeScreen() {
         >
           {busy === 'empty' ? <ActivityIndicator color="#fff" /> : <Text style={styles.secondaryText}>Boş başla</Text>}
         </Pressable>
-        <Pressable onPress={restore} disabled={Boolean(busy)} style={styles.link} accessibilityRole="button" hitSlop={6}>
-          {busy === 'restore' ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Icon name="folder-open-outline" size={16} color="#d1fae5" />
-              <Text style={styles.linkText}>Yedeğin var mı? Geri yükle</Text>
-            </>
-          )}
-        </Pressable>
+        {data.backupsEnabled ? (
+          <Pressable onPress={restore} disabled={Boolean(busy)} style={styles.link} accessibilityRole="button" hitSlop={6}>
+            {busy === 'restore' ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Icon name="folder-open-outline" size={16} color="#d1fae5" />
+                <Text style={styles.linkText}>Yedeğin var mı? Geri yükle</Text>
+              </>
+            )}
+          </Pressable>
+        ) : null}
         <Text style={styles.fine}>Örnek verileri istediğin zaman Ayarlar → “Tüm verileri sil” ile temizleyebilirsin.</Text>
       </View>
     </SafeAreaView>

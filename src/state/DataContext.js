@@ -1,7 +1,7 @@
 // All of the app's data. Everything is stored on the device; screens read
 // plain arrays from here and call the actions to change data.
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LocalStore } from '../store/store';
 import { createPersistence } from '../store/persistence';
@@ -93,6 +93,8 @@ export function DataProvider({ children }) {
       goals,
       goalsById: index(goals),
       recurring,
+      // The web demo only holds sample data, so it leaves backups out.
+      backupsEnabled: Platform.OS !== 'web',
       currency: settings?.currency || 'TRY',
       displayName: settings?.display_name || '',
       // The welcome screen is shown until the first start is set up.
