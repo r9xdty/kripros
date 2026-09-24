@@ -236,6 +236,58 @@ describe('SyncEngine', () => {
     expect(local.r03.amount).toBe(999);
   });
 
+  test('a row and its outbox entry are written to storage together', async () => {
+    const storage = createMemoryStorage();
+    const spy = jest.spyOn(storage, 'multiSet');
+    const { engine } = setup({ storage });
+    engine.upsert('transactions', tx());
+    await engine.flush();
+    const writes = spy.mock.calls.map((call) => call[0].map(([key]) => key));
+    expect(writes.some((keys) => keys.some((k) => k.includes(':table:transactions:')) && keys.some((k) => k.endsWith(':outbox')))).toBe(true);
+  });
+
+  test('queue entries without a row are dropped instead of staying pending forever', async () => {
+    const storage = createMemoryStorage();
+    await storage.setItem(`kripros:v1:${USER}:outbox`, JSON.stringify({ 'transactions:ghost': { table: 'transactions', id: 'ghost', attempts: 0 } }));
+    const { engine } = setup({ storage });
+    await engine.init();
+    expect(engine.getSnapshot().pending).toBe(1);
+    await engine.sync();
+    expect(engine.getSnapshot().pending).toBe(0);
+  });
+
+  test('an interrupted first download resumes and still learns about deletions', async () => {
+    const { engine, server } = setup({ pageSize: 10 });
+    for (let i = 0; i < 25; i++) {
+      server.write('transactions', { id: `r${String(i).padStart(2, '0')}`, user_id: USER, ...tx({ amount: i + 1 }), updated_at: '2026-09-24T09:00:00.000Z', deleted_at: null });
+    }
+    const pull = server.pull;
+    let calls = 0;
+    server.pull = async (table, options) => {
+      if (table === 'transactions' && ++calls === 2) throw new (jest.requireActual('../engine').SyncError)('network', 'dropped');
+      return pull(table, options);
+    };
+    expect((await engine.sync()).ok).toBe(false);
+    expect(Object.keys(engine.getSnapshot().tables.transactions)).toHaveLength(10);
+    expect(engine.getSnapshot().lastSyncedAt).toBeNull();
+
+    // Another device deletes a row we already downloaded.
+    server.write('transactions', { ...server.db.transactions.r02, deleted_at: '2026-09-24T12:00:00.000Z', updated_at: '2026-09-24T12:00:00.000Z' });
+    server.pull = pull;
+    expect((await engine.sync()).ok).toBe(true);
+    const local = engine.getSnapshot().tables.transactions;
+    expect(local.r02).toBeUndefined();
+    expect(Object.keys(local)).toHaveLength(24);
+  });
+
+  test('upsertMany applies a batch with one queue update', () => {
+    const { engine } = setup();
+    const rows = engine.upsertMany('transactions', [tx({ amount: 1 }), tx({ amount: 2 }), tx({ amount: 3 })]);
+    expect(rows).toHaveLength(3);
+    expect(new Set(rows.map((r) => r.id)).size).toBe(3);
+    expect(engine.getSnapshot().pending).toBe(3);
+  });
+
   test('parents are pushed before children created offline', async () => {
     const { engine, server } = setup();
     server.offline = true;

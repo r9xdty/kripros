@@ -69,9 +69,16 @@ export function DataProvider({ user, children }) {
       if (onlineRef.current) instance.sync();
     });
     readLegacyData(AsyncStorage).then((data) => !cancelled && setLegacy(data));
+    // Requests made while the token could not be refreshed fail with 401;
+    // retry as soon as a fresh token is available. Deferred because
+    // Supabase must not be called from inside this callback.
+    const auth = supabase?.auth.onAuthStateChange((event) => {
+      if (event === 'TOKEN_REFRESHED') setTimeout(() => !cancelled && instance.sync(), 0);
+    });
     return () => {
       cancelled = true;
       clearTimeout(syncTimer.current);
+      auth?.data.subscription.unsubscribe();
       instance.destroy();
       setEngine(null);
     };
@@ -176,8 +183,8 @@ export function DataProvider({ user, children }) {
     const data = await readLegacyData(AsyncStorage);
     if (!data || !engine) return { templates: 0, transactions: 0 };
     const { templates, transactions } = buildLegacyImport(data, newId);
-    for (const template of templates) engine.upsert('saving_templates', template);
-    for (const transaction of transactions) engine.upsert('transactions', transaction);
+    if (templates.length) engine.upsertMany('saving_templates', templates);
+    if (transactions.length) engine.upsertMany('transactions', transactions);
     await engine.flush();
     await markLegacyHandled(AsyncStorage);
     setLegacy(null);
@@ -204,8 +211,8 @@ export function DataProvider({ user, children }) {
       ...derived,
       ...actions,
       ready: Boolean(engine),
-      // A fresh device has nothing to show until the first download finishes.
-      initialSyncDone: Boolean(snapshot.lastSyncedAt) || (engine ? engine.hasLocalData() : false),
+      // A new device shows nothing until its first full download finished.
+      initialSyncDone: Boolean(snapshot.lastSyncedAt),
       sync: {
         state: snapshot.status.state,
         lastError: snapshot.status.lastError,

@@ -18,6 +18,26 @@ const DEMO_USER = { id: '00000000-0000-4000-8000-00000000de30', email: 'demo@kri
 
 const AuthContext = createContext(null);
 
+const SIGN_OUT_WAIT_MS = 4000;
+
+const parseUser = (json) => {
+  try {
+    const user = JSON.parse(json);
+    return user && user.id ? user : null;
+  } catch {
+    return null;
+  }
+};
+
+// Removes the stored session directly. Needed when supabase.auth.signOut
+// cannot finish, e.g. offline with an expired token: it then returns an
+// error without deleting anything, and the session would come back once
+// the device is online again.
+const clearStoredSession = () => {
+  const key = supabase.auth.storageKey;
+  return AsyncStorage.multiRemove([key, `${key}-user`, `${key}-code-verifier`]).catch(() => {});
+};
+
 const userFromSession = (session) => {
   const { id, email, user_metadata: meta = {} } = session.user;
   return {
@@ -49,6 +69,9 @@ export function AuthProvider({ children }) {
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState(null);
   const handledCodes = useRef(new Set());
+  // Set when the user signs out, so a token refresh that was already in
+  // flight cannot sign them back in.
+  const signedOutByUser = useRef(false);
 
   const setSignedIn = useCallback((user) => {
     setState({ status: 'signedIn', user });
@@ -79,25 +102,37 @@ export function AuthProvider({ children }) {
     let active = true;
 
     (async () => {
+      // Show the last signed-in user straight away. Offline with an expired
+      // token, getSession keeps retrying the refresh for ~25 seconds.
+      const cached = parseUser(await AsyncStorage.getItem(LAST_USER_KEY).catch(() => null));
+      if (cached && active) {
+        setState((current) => (current.status === 'loading' ? { status: 'signedIn', user: cached, restored: true } : current));
+      }
+
       const { data, error: sessionError } = await supabase.auth.getSession();
       if (!active) return;
       if (data.session) {
         setSignedIn(userFromSession(data.session));
         return;
       }
-      if (sessionError && isAuthRetryableFetchError(sessionError)) {
-        const cached = await AsyncStorage.getItem(LAST_USER_KEY).catch(() => null);
-        if (cached && active) {
-          setState({ status: 'signedIn', user: JSON.parse(cached) });
-          return;
-        }
-      }
-      if (active) setState((current) => (current.status === 'loading' ? { status: 'signedOut', user: null } : current));
+      // Still offline: keep using the cached user until the token refreshes.
+      if (sessionError && isAuthRetryableFetchError(sessionError) && cached) return;
+      setState((current) =>
+        current.status === 'loading' || current.restored ? { status: 'signedOut', user: null } : current,
+      );
+      if (!sessionError || !isAuthRetryableFetchError(sessionError)) AsyncStorage.removeItem(LAST_USER_KEY).catch(() => {});
     })();
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') setSignedOut();
-      else if (session) setSignedIn(userFromSession(session));
+      if (event === 'SIGNED_OUT') {
+        setSignedOut();
+      } else if (session) {
+        if (signedOutByUser.current) {
+          clearStoredSession();
+          return;
+        }
+        setSignedIn(userFromSession(session));
+      }
     });
 
     // Android may deliver the OAuth redirect as a regular deep link.
@@ -116,6 +151,7 @@ export function AuthProvider({ children }) {
     if (!supabase) return;
     setError(null);
     setSigningIn(true);
+    signedOutByUser.current = false;
     try {
       const queryParams = { prompt: 'select_account' };
       if (Platform.OS === 'web') {
@@ -141,10 +177,19 @@ export function AuthProvider({ children }) {
     }
   }, [completeSignIn]);
 
-  // Works offline: only the session on this device is removed.
+  // Works offline: the session on this device is always removed. When
+  // online, Supabase also revokes it on the server.
   const signOut = useCallback(async () => {
     if (DEMO_MODE) return;
-    await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    signedOutByUser.current = true;
+    const attempt = supabase.auth
+      .signOut({ scope: 'local' })
+      .then(({ error: signOutError }) => signOutError && clearStoredSession())
+      .catch(() => clearStoredSession());
+    let timer;
+    await Promise.race([attempt, new Promise((resolve) => (timer = setTimeout(resolve, SIGN_OUT_WAIT_MS)))]);
+    clearTimeout(timer);
+    await clearStoredSession();
     setSignedOut();
   }, [setSignedOut]);
 

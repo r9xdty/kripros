@@ -42,6 +42,8 @@ export const toMillis = (ts) => {
   return Number.isNaN(ms) ? 0 : ms;
 };
 
+const emptyDirty = () => ({ tables: new Map(), outbox: false, meta: false, all: false });
+
 const chunk = (items, size) => {
   const out = [];
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
@@ -78,6 +80,8 @@ export class SyncEngine {
     this.status = { state: 'idle', lastError: null };
     this.listeners = new Set();
     this.writes = Promise.resolve();
+    this.dirty = emptyDirty();
+    this.flushScheduled = false;
     this.running = null;
     this.rerun = false;
     this.destroyed = false;
@@ -124,21 +128,27 @@ export class SyncEngine {
   // ------------------------------------------------------------------
 
   upsert(table, values) {
+    return this.upsertMany(table, [values])[0];
+  }
+
+  // Applies several changes to one table with a single state update and a
+  // single storage write (used for bulk imports).
+  upsertMany(table, valuesList) {
     if (!TABLES[table]?.push) throw new Error(`Table ${table} is read-only`);
-    const id = table === 'profiles' ? this.userId : values.id ?? this.newId();
-    const existing = this.tables[table][id];
-    const updatedAt = this.nextTimestamp(existing?.updated_at);
-
-    let row = { ...existing, ...values, id, updated_at: updatedAt };
-    if (!existing) {
-      row = withDefaults(table, { created_at: updatedAt, ...row });
+    const changed = {};
+    for (const values of valuesList) {
+      const id = table === 'profiles' ? this.userId : values.id ?? this.newId();
+      const existing = changed[id] || this.tables[table][id];
+      const updatedAt = this.nextTimestamp(existing?.updated_at);
+      let row = { ...existing, ...values, id, updated_at: updatedAt };
+      if (!existing) row = withDefaults(table, { created_at: updatedAt, ...row });
+      if (TABLES[table].columns.includes('user_id')) row.user_id = this.userId;
+      changed[id] = row;
     }
-    if (TABLES[table].columns.includes('user_id')) row.user_id = this.userId;
-
-    this.setRows(table, { [id]: row }, []);
-    this.enqueue([keyOf(table, id)]);
+    this.setRows(table, changed, []);
+    this.enqueue(Object.keys(changed).map((id) => keyOf(table, id)));
     this.emit();
-    return row;
+    return Object.values(changed);
   }
 
   remove(table, id) {
@@ -153,7 +163,7 @@ export class SyncEngine {
       if (outbox[key].attempts >= this.maxAttempts) outbox[key] = { ...outbox[key], attempts: 0 };
     }
     this.outbox = outbox;
-    this.persist(() => this.persistence.saveOutbox(this.outbox));
+    this.markDirty({ outbox: true });
     this.emit();
   }
 
@@ -173,7 +183,7 @@ export class SyncEngine {
       outbox[key] = { table, id: rest.join(':'), attempts: 0 };
     }
     this.outbox = outbox;
-    this.persist(() => this.persistence.saveOutbox(this.outbox));
+    this.markDirty({ outbox: true });
   }
 
   // ------------------------------------------------------------------
@@ -204,7 +214,7 @@ export class SyncEngine {
       await this.push();
       await this.pull();
       this.meta = { ...this.meta, lastSyncedAt: this.now().toISOString() };
-      this.persist(() => this.persistence.saveMeta(this.meta));
+      this.markDirty({ meta: true });
       this.setStatus({ state: 'idle', lastError: null });
       return { ok: true };
     } catch (error) {
@@ -221,6 +231,7 @@ export class SyncEngine {
   }
 
   async push() {
+    this.dropOrphans();
     for (const table of PUSH_ORDER) {
       const ids = Object.values(this.outbox)
         .filter((entry) => entry.table === table && entry.attempts < this.maxAttempts)
@@ -255,6 +266,21 @@ export class SyncEngine {
     }
   }
 
+  // Queue entries whose row is gone (e.g. the app stopped between two
+  // writes in an older version) can never be pushed; drop them.
+  dropOrphans() {
+    const orphans = Object.keys(this.outbox).filter((key) => {
+      const { table, id } = this.outbox[key];
+      return !this.tables[table]?.[id];
+    });
+    if (orphans.length === 0) return;
+    const outbox = { ...this.outbox };
+    for (const key of orphans) delete outbox[key];
+    this.outbox = outbox;
+    this.markDirty({ outbox: true });
+    this.emit();
+  }
+
   applyPushResult(table, pushedRows, returnedRows) {
     const returned = new Map((returnedRows || []).map((r) => [r.id, normalizeRow(table, r)]));
     const changed = {};
@@ -274,7 +300,7 @@ export class SyncEngine {
 
     this.outbox = outbox;
     this.setRows(table, changed, removed);
-    this.persist(() => this.persistence.saveOutbox(this.outbox));
+    this.markDirty({ outbox: true });
     this.emit();
   }
 
@@ -284,7 +310,7 @@ export class SyncEngine {
     const current = this.tables[table][row.id];
     if (!entry || !current || current.updated_at !== row.updated_at) return;
     this.outbox = { ...this.outbox, [key]: { ...entry, attempts: entry.attempts + 1, lastError: error.message } };
-    this.persist(() => this.persistence.saveOutbox(this.outbox));
+    this.markDirty({ outbox: true });
     this.emit();
   }
 
@@ -292,23 +318,25 @@ export class SyncEngine {
     for (const table of TABLE_NAMES) {
       const cursor = this.meta.cursors[table] || null;
       let since = cursor ? new Date(toMillis(cursor) - this.overlapMs).toISOString() : null;
-      let maxSeen = cursor;
+      // Only a device that holds nothing of this table can skip tombstones.
+      const excludeDeleted = !cursor && hasSoftDelete(table) && Object.keys(this.tables[table]).length === 0;
       let offset = 0;
 
       for (;;) {
-        const rows = await this.remote.pull(table, {
-          since,
-          // A fresh device has nothing to delete, so skip tombstones.
-          excludeDeleted: !cursor && hasSoftDelete(table),
-          offset,
-          limit: this.pageSize,
-        });
+        const rows = await this.remote.pull(table, { since, excludeDeleted, offset, limit: this.pageSize });
         this.checkAlive();
+        this.applyPulledRows(table, rows);
 
+        // Save the cursor after every page (pages arrive oldest first), so an
+        // interrupted download resumes instead of starting over.
+        let maxSeen = this.meta.cursors[table] || null;
         for (const row of rows) {
           if (toMillis(row.server_updated_at) > toMillis(maxSeen)) maxSeen = row.server_updated_at;
         }
-        this.applyPulledRows(table, rows);
+        if (maxSeen !== (this.meta.cursors[table] || null)) {
+          this.meta = { ...this.meta, cursors: { ...this.meta.cursors, [table]: maxSeen } };
+          this.markDirty({ meta: true });
+        }
 
         if (rows.length < this.pageSize) break;
         // Page by timestamp rather than by offset: a row edited on another
@@ -322,11 +350,6 @@ export class SyncEngine {
           since = last;
           offset = 0;
         }
-      }
-
-      if (maxSeen !== cursor) {
-        this.meta = { ...this.meta, cursors: { ...this.meta.cursors, [table]: maxSeen } };
-        this.persist(() => this.persistence.saveMeta(this.meta));
       }
     }
   }
@@ -360,7 +383,7 @@ export class SyncEngine {
     const outboxChanged = outbox !== this.outbox;
     if (outboxChanged) {
       this.outbox = outbox;
-      this.persist(() => this.persistence.saveOutbox(this.outbox));
+      this.markDirty({ outbox: true });
     }
     if (!outboxChanged && removed.length === 0 && Object.keys(changed).length === 0) return;
     this.setRows(table, changed, removed);
@@ -377,11 +400,42 @@ export class SyncEngine {
     const rows = { ...this.tables[table], ...changed };
     for (const id of removedIds) delete rows[id];
     this.tables = { ...this.tables, [table]: rows };
-    this.persist(() => this.persistence.saveTable(table, this.tables[table], ids));
+    this.markDirty({ table, ids });
   }
 
-  persist(write) {
-    this.writes = this.writes.then(write).catch((error) => this.onError(error));
+  // Changes are collected and written in one storage call per tick, so a
+  // row and its outbox entry are saved together: stopping the app between
+  // two separate writes could otherwise leave a change that is never sent.
+  markDirty({ table, ids, outbox, meta }) {
+    if (this.destroyed) return;
+    if (table) {
+      const set = this.dirty.tables.get(table) || new Set();
+      for (const id of ids) set.add(id);
+      this.dirty.tables.set(table, set);
+    }
+    if (outbox) this.dirty.outbox = true;
+    if (meta) this.dirty.meta = true;
+    if (this.flushScheduled) return;
+    this.flushScheduled = true;
+    this.writes = this.writes
+      .then(() => this.writeDirty())
+      .catch((error) => {
+        // Rewrite everything with the next change.
+        this.dirty.all = true;
+        this.onError(error);
+      });
+  }
+
+  async writeDirty() {
+    this.flushScheduled = false;
+    const dirty = this.dirty;
+    this.dirty = emptyDirty();
+    const entries = [];
+    const tables = dirty.all ? TABLE_NAMES.map((t) => [t, undefined]) : [...dirty.tables].map(([t, ids]) => [t, [...ids]]);
+    for (const [table, ids] of tables) entries.push(...this.persistence.tableEntries(table, this.tables[table], ids));
+    if (dirty.all || dirty.outbox) entries.push(this.persistence.outboxEntry(this.outbox));
+    if (dirty.all || dirty.meta) entries.push(this.persistence.metaEntry(this.meta));
+    if (entries.length) await this.persistence.write(entries);
   }
 
   setStatus(patch) {

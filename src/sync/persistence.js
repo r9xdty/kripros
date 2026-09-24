@@ -58,9 +58,9 @@ export const createPersistence = (storage, userId) => {
       };
     },
 
-    // Rewrites only the buckets that contain one of `changedIds`
-    // (or the whole table when `changedIds` is omitted).
-    async saveTable(table, rows, changedIds) {
+    // Storage entries for the buckets that contain one of `changedIds`
+    // (or for the whole table when `changedIds` is omitted).
+    tableEntries(table, rows, changedIds) {
       const count = TABLES[table].buckets;
       const dirty = new Set(
         changedIds ? changedIds.map((id) => bucketOf(table, id)) : [...Array(count).keys()],
@@ -70,15 +70,25 @@ export const createPersistence = (storage, userId) => {
         const b = bucketOf(table, id);
         if (buckets.has(b)) buckets.get(b)[id] = row;
       }
-      await storage.multiSet([...buckets].map(([b, data]) => [tableKey(table, b), JSON.stringify(data)]));
+      return [...buckets].map(([b, data]) => [tableKey(table, b), JSON.stringify(data)]);
     },
 
-    saveOutbox(outbox) {
-      return storage.setItem(outboxKey, JSON.stringify(outbox));
+    outboxEntry(outbox) {
+      return [outboxKey, JSON.stringify(outbox)];
     },
 
-    saveMeta(meta) {
-      return storage.setItem(metaKey, JSON.stringify(meta));
+    metaEntry(meta) {
+      return [metaKey, JSON.stringify(meta)];
+    },
+
+    // Writes several entries in one call, so related changes (a row and its
+    // outbox entry) reach storage together.
+    write(entries) {
+      return storage.multiSet(entries);
+    },
+
+    saveTable(table, rows, changedIds) {
+      return storage.multiSet(this.tableEntries(table, rows, changedIds));
     },
 
     clear() {
