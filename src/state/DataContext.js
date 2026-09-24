@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LocalStore } from '../store/store';
 import { createPersistence } from '../store/persistence';
 import { SETTINGS_ID } from '../store/schema';
-import { newId } from '../lib/uuid';
+import { newId } from '../lib/id';
 import { seedDefaults, seedSampleData } from '../domain/defaults';
 import { buildLegacyImport, markLegacyHandled, readLegacyData } from '../domain/legacyImport';
 import { cleanTransaction } from '../domain/transactions';

@@ -1,60 +1,86 @@
+<div align="center">
+
+<img src="assets/icon.png" width="96" alt="Kripros icon">
+
 # Kripros
 
-Birikimlerini, harcamalarını ve gelirini tek yerde takip eden bir mobil uygulama (Expo / React Native). Sunucu yok, hesap yok: tüm veriler cihazda saklanır ve uygulama internetsiz çalışır.
+A personal finance tracker for savings, spending and income, built with Expo and React Native.<br>
+It runs fully on the device: no account, no server, no internet needed.
 
-| Karşılama | Özet | Takvim | Hedefler | Yeni kayıt |
-|---|---|---|---|---|
-| <img src="docs/screenshots/welcome.png" width="160" alt="Karşılama ekranı"> | <img src="docs/screenshots/dashboard.png" width="160" alt="Özet ekranı"> | <img src="docs/screenshots/calendar.png" width="160" alt="Takvim ekranı"> | <img src="docs/screenshots/goals.png" width="160" alt="Hedefler ekranı"> | <img src="docs/screenshots/add-transaction.png" width="160" alt="Yeni kayıt ekranı"> |
+**[Live demo](https://r9xdty.github.io/project_kripros/)** · [Türkçe](README.tr.md)
 
-## Özellikler
+[![CI](https://github.com/r9xdty/project_kripros/actions/workflows/ci.yml/badge.svg)](https://github.com/r9xdty/project_kripros/actions/workflows/ci.yml)
+![Expo SDK 53](https://img.shields.io/badge/Expo-SDK%2053-000020?logo=expo)
+![React Native 0.79](https://img.shields.io/badge/React%20Native-0.79-61dafb?logo=react)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-- **Gelir, harcama ve birikim kayıtları**, düzenlenebilir kategorilerle.
-- **Birikim alışkanlıkları**: "Kahve almadım · 85 ₺ · günlük" gibi tekrar eden tasarruflar. Zamanı gelenler ana sayfada ve takvimde öneri olarak çıkar, tek dokunuşla eklenir.
-- **Grafikler**: son 7 gün / 5 hafta / 12 ay için gelir, harcama ve birikimi yan yana gösteren çubuk grafik. Aylık dağılım için halka grafik. İkisi de kütüphanesiz, doğrudan SVG ile çizilir.
-- **Takvim**: her günün harcama ve birikim toplamları; bir güne dokununca o günün kayıtları.
-- **Hedefler**: "Yaz tatili 40.000 ₺" gibi hedefler. İlerleme, kalan tutar ve hedef tarihine yetişmek için gereken aylık tutar.
-- **Geçmiş**: günlere göre gruplu, aranabilir ve türe göre filtrelenebilir liste.
-- **Türkçe tutar girişi**: `45,50`, `1.250`, `1.250,75` gibi yazımlar doğru okunur. Toplamlar kuruş hassasiyetinde, kayan nokta hatası olmadan hesaplanır.
-- **İlk açılışta seçim**: boş başlamak ya da birkaç aylık örnek veriyle uygulamayı keşfetmek.
+</div>
 
-## Çalıştırma
+| Overview | Charts | Calendar |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/dashboard.png" width="240" alt="Overview screen"> | <img src="docs/screenshots/charts.png" width="240" alt="Bar and donut charts"> | <img src="docs/screenshots/calendar.png" width="240" alt="Calendar screen"> |
+| **Goals** | **History** | **New record** |
+| <img src="docs/screenshots/goals.png" width="240" alt="Goals screen"> | <img src="docs/screenshots/history.png" width="240" alt="History screen"> | <img src="docs/screenshots/new-record.png" width="240" alt="New record form"> |
+
+> The interface is in Turkish. In the live demo, choose **“Örnek verilerle keşfet”** to start with a few months of sample data.
+
+## Features
+
+- **Income, spending and savings** with editable categories.
+- **Saving habits**: recurring savings such as “skipped coffee · ₺85 · daily”. Habits that are due are suggested on the overview and in the calendar, and can be added with one tap.
+- **Charts**: a grouped bar chart comparing income, spending and savings over the last 7 days, 5 weeks or 12 months, and a donut chart of the month by category. Both are drawn directly with SVG, without a chart library.
+- **Calendar**: daily totals at a glance; tap a day to see or add its records.
+- **Goals**: targets like “summer holiday ₺40,000”, with progress, the amount left and the monthly amount needed to reach it on time.
+- **History**: records grouped by day, searchable and filterable by type.
+- **Turkish number input**: `45,50`, `1.250` and `1.250,75` are all read correctly. Totals are computed in kuruş (cents), so there are no floating-point errors.
+
+## Getting started
 
 ```bash
 npm install
-npx expo start          # telefonda Expo Go ile QR kodu okut
-npx expo start --web    # tarayıcıda
+npx expo start          # scan the QR code with Expo Go
+npx expo start --web    # or open it in the browser
 ```
 
-## Testler ve kontroller
+## Scripts
 
-```bash
-npm test               # Jest birim testleri
-npm run lint           # ESLint
-npm run check:bundle   # Android JS paketinin derlendiğini doğrular
+| Command | What it does |
+|---|---|
+| `npm test` | Jest unit tests |
+| `npm run lint` | ESLint (Expo config) |
+| `npm run check:bundle` | Checks that the Android JS bundle builds |
+
+Every push and pull request runs lint, tests and a web build on GitHub Actions. Pushes to `main` also deploy the web build to GitHub Pages.
+
+## How it works
+
+- **Expo SDK 53, React Native 0.79 (New Architecture), React 19**: one codebase for Android, iOS and the web.
+- **Local store** (`src/store`): records are kept in memory for the UI and saved to AsyncStorage.
+  - Changes made at the same time are written in a single call.
+  - Large tables are split into 16 buckets, so no value hits Android's ~2 MB per-item limit and only the changed bucket is rewritten.
+- **Domain logic** (`src/domain`): statistics, the habit suggestions and goal progress are plain functions, independent of the UI and covered by unit tests.
+- **Dates** are stored as local calendar days (`YYYY-MM-DD`), so a record never moves to another day because of time zones.
+- **Sheets**: forms and details open as a stack inside a single `Modal`. Nesting several React Native modals is unreliable on iOS; this way the form under the top sheet also keeps its state.
+
+## Project structure
+
 ```
-
-## Teknik notlar
-
-- **Expo SDK 53, React Native 0.79 (New Architecture), React 19**. Aynı kod Android, iOS ve web'de çalışır.
-- **Veri katmanı** (`src/store/`): kayıtlar bellekte tutulur ve AsyncStorage'a yazılır.
-  - Aynı anda yapılan değişiklikler tek bir yazma işleminde birleştirilir.
-  - Büyük tablolar 16 parçaya bölünür; böylece Android'deki tek kayıt başına ~2 MB sınırına takılmaz ve yalnızca değişen parça yeniden yazılır.
-- **Hesaplamalar** (`src/domain/`): istatistikler, öneri algoritması ve hedef ilerlemesi arayüzden bağımsız, saf fonksiyonlardır ve birim testleriyle kapsanır.
-- **Tarihler** `YYYY-MM-DD` biçiminde, yerel gün olarak saklanır. Böylece saat dilimi yüzünden kayıtlar yanlış güne kaymaz.
-- **Pencereler** tek bir `Modal` içinde yığın olarak açılır. iOS'ta iç içe birden fazla `Modal` açmak güvenilir çalışmadığı için bu yol seçildi; alttaki pencerenin form durumu da korunur.
-
-## Proje yapısı
-
-```
-App.js              giriş noktası: veri → karşılama ya da ana ekran
+App.js              entry point: data provider → welcome screen or main app
+app.json            Expo configuration
+app.config.js       adds the GitHub Pages base path to web builds in CI
 src/
-  store/            cihazdaki veri deposu (AsyncStorage)
-  state/            DataContext: veriler ve işlemler
-  domain/           istatistikler, öneriler, varsayılan/örnek veriler, doğrulama
-  lib/              tutar ve tarih yardımcıları, diyaloglar
-  navigation/       sekmeler ve pencere yığını
-  screens/          Özet, Takvim, Hedefler, Geçmiş, Karşılama
-  sheets/           Kayıt, Gün, Hedef, Ayarlar, Kategoriler, Alışkanlıklar pencereleri
-  components/       ortak arayüz parçaları ve SVG grafikler
-docs/screenshots/   README görselleri
+  store/            on-device store (AsyncStorage)
+  state/            DataContext: data and actions for the screens
+  domain/           statistics, suggestions, validation, default and sample data
+  lib/              money and date helpers, dialogs, ids
+  navigation/       tab bar and sheet stack
+  screens/          Overview, Calendar, Goals, History, Welcome
+  sheets/           record, day, goal, settings, categories and habits
+  components/       shared UI parts and the SVG charts
+docs/screenshots/   images used in this README
+.github/workflows/  CI and GitHub Pages deployment
 ```
+
+## License
+
+[MIT](LICENSE)

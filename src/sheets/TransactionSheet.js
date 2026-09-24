@@ -214,10 +214,13 @@ const styles = StyleSheet.create({
   },
   amountInput: {
     flex: 1,
+    minWidth: 0,
     fontSize: 40,
     fontWeight: '800',
     textAlign: 'center',
     paddingVertical: spacing.md,
+    // The coloured border already shows focus; hide the browser's outline.
+    outlineStyle: 'none',
   },
   currency: { fontSize: 28, fontWeight: '700' },
   error: { color: colors.danger, marginTop: spacing.sm, fontSize: 14, textAlign: 'center' },

@@ -1,5 +1,6 @@
 import { LocalStore } from '../store';
-import { bucketOf, createMemoryStorage, createPersistence } from '../persistence';
+import { bucketOf, createPersistence } from '../persistence';
+import { createMemoryStorage } from './memoryStorage';
 
 const setup = (storage = createMemoryStorage()) => {
   let n = 0;

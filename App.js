@@ -3,10 +3,11 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DataProvider, useData } from './src/state/DataContext';
 import { ToastProvider } from './src/components/Toast';
+import WebFrame from './src/components/WebFrame';
 import SheetHost from './src/navigation/SheetHost';
 import MainShell from './src/navigation/MainShell';
 import WelcomeScreen from './src/screens/WelcomeScreen';
-import { LoadingScreen } from './src/screens/StatusScreens';
+import LoadingScreen from './src/screens/LoadingScreen';
 
 function Root() {
   const data = useData();
@@ -22,12 +23,14 @@ function Root() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <DataProvider>
-        <ToastProvider>
-          <StatusBar style="dark" />
-          <Root />
-        </ToastProvider>
-      </DataProvider>
+      <WebFrame>
+        <DataProvider>
+          <ToastProvider>
+            <StatusBar style="dark" />
+            <Root />
+          </ToastProvider>
+        </DataProvider>
+      </WebFrame>
     </SafeAreaProvider>
   );
 }

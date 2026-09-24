@@ -1,7 +1,7 @@
 // Side-by-side bars per period (e.g. income / spending / savings per week).
 // Tapping a period selects it; the parent shows its exact values.
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 import { KINDS } from '../../domain/constants';
 import { formatCompact, formatNumber } from '../../lib/money';
@@ -10,9 +10,11 @@ import { colors } from '../../theme';
 const AXIS_WIDTH = 38;
 const LABEL_HEIGHT = 22;
 const TOP_PADDING = 8;
+// SVG text falls back to a serif font in browsers.
+const FONT_FAMILY = Platform.select({ web: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif', default: undefined });
 
 // Rounds the axis maximum up to 1, 2, 2.5 or 5 × 10^n.
-export const niceMax = (value) => {
+const niceMax = (value) => {
   if (!(value > 0)) return 1;
   const magnitude = 10 ** Math.floor(Math.log10(value));
   for (const step of [1, 2, 2.5, 5, 10]) {
@@ -47,7 +49,7 @@ export default function GroupedBarChart({ data, kinds, selectedIndex, onSelect, 
                 <React.Fragment key={fraction}>
                   <Line x1={AXIS_WIDTH} x2={width} y1={lineY} y2={lineY} stroke={colors.border} strokeWidth={1} strokeDasharray={fraction === 0 ? undefined : '3,4'} />
                   {highest > 0 || fraction === 0 ? (
-                    <SvgText x={AXIS_WIDTH - 6} y={lineY + 4} fontSize={10} fill={colors.textFaint} textAnchor="end">
+                    <SvgText x={AXIS_WIDTH - 6} y={lineY + 4} fontSize={10} fontFamily={FONT_FAMILY} fill={colors.textFaint} textAnchor="end">
                       {axisLabel(max * fraction)}
                     </SvgText>
                   ) : null}
@@ -84,6 +86,7 @@ export default function GroupedBarChart({ data, kinds, selectedIndex, onSelect, 
                     x={groupX + groupWidth / 2}
                     y={height - 6}
                     fontSize={11}
+                    fontFamily={FONT_FAMILY}
                     fontWeight={selected ? '700' : '400'}
                     fill={selected ? colors.text : colors.textMuted}
                     textAnchor="middle"

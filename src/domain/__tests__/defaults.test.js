@@ -1,7 +1,8 @@
 import { DEFAULT_CATEGORIES, seedDefaults, seedSampleData } from '../defaults';
 import { LocalStore } from '../../store/store';
-import { createMemoryStorage, createPersistence } from '../../store/persistence';
-import { newId } from '../../lib/uuid';
+import { createPersistence } from '../../store/persistence';
+import { createMemoryStorage } from '../../store/__tests__/memoryStorage';
+import { newId } from '../../lib/id';
 import { toDateKey } from '../../lib/dates';
 
 const makeStore = () => new LocalStore({ persistence: createPersistence(createMemoryStorage()), newId });

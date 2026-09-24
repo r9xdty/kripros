@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, font, spacing } from '../theme';
 
-export function LoadingScreen({ message = 'Yükleniyor…' }) {
+export default function LoadingScreen({ message = 'Yükleniyor…' }) {
   return (
     <SafeAreaView style={styles.center}>
       <ActivityIndicator size="large" color={colors.primary} />
