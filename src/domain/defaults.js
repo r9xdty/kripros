@@ -1,6 +1,7 @@
 // What the app starts with: default categories, and optionally a few
 // months of sample records to explore the charts.
 import { addDays, toDateKey } from '../lib/dates';
+import { collectDue, occurrenceIn } from './recurring';
 
 export const DEFAULT_CATEGORIES = [
   ['spending', 'Market', 'cart', '#ef4444'],
@@ -60,10 +61,7 @@ export const seedSampleData = (store, now = new Date()) => {
 
   for (let month = 0; month < 6; month++) {
     const base = month * 30;
-    add('income', 42000, base + 20, { title: 'Maaş', category_id: categories['income:Maaş'] });
-    add('spending', 15000, base + 19, { title: 'Kira', category_id: categories['spending:Kira & Konut'] });
     add('spending', 1850 + month * 40, base + 15, { title: 'Elektrik & su', category_id: categories['spending:Faturalar'] });
-    add('spending', 349, base + 12, { title: 'Dizi & müzik', category_id: categories['spending:Abonelikler'] });
     add('saving', 2500, base + 18, { title: 'Tatil birikimi', goal_id: trip.id });
     if (month % 2 === 0) add('income', 6500, base + 8, { title: 'Freelance proje', category_id: categories['income:Ek Gelir'] });
     if (month % 3 === 1) add('saving', 4000, base + 9, { title: 'Bilgisayar birikimi', goal_id: laptop.id });
@@ -81,6 +79,40 @@ export const seedSampleData = (store, now = new Date()) => {
   add('spending', 2400, 26, { title: 'Mont', category_id: categories['spending:Giyim'] });
   add('spending', 950, 33, { title: 'Diş hekimi', category_id: categories['spending:Sağlık'] });
   add('spending', 600, 4, { title: 'Konser bileti', category_id: categories['spending:Eğlence'] });
+  add('spending', 1650, 40, { title: 'İngilizce kursu', category_id: categories['spending:Eğitim'] });
+
+  // Monthly rules that started six months ago; their past occurrences are
+  // created the same way the app creates them day to day.
+  const rules = store.upsertMany(
+    'recurring',
+    [
+      ['income', 42000, 'Maaş', 'income:Maaş', 15],
+      ['spending', 15000, 'Kira', 'spending:Kira & Konut', 5],
+      ['spending', 349, 'Dizi & müzik', 'spending:Abonelikler', 12],
+      ['spending', 900, 'Spor salonu', 'spending:Sağlık', 28],
+    ].map(([kind, amount, title, category, dayOfMonth]) => ({
+      kind,
+      amount,
+      title,
+      category_id: categories[category],
+      day_of_month: dayOfMonth,
+      next_on: occurrenceIn(today.getFullYear(), today.getMonth() - 5, dayOfMonth),
+    })),
+  );
+  const due = collectDue(rules, toDateKey(today));
+  transactions.push(...due.transactions);
+  store.upsertMany('recurring', due.updates);
+
+  store.upsertMany(
+    'categories',
+    [
+      ['spending:Market', 4500],
+      ['spending:Yeme-İçme', 3000],
+      ['spending:Ulaşım', 1500],
+      ['spending:Eğlence', 1500],
+    ].map(([key, monthly_budget]) => ({ id: categories[key], monthly_budget })),
+  );
+
   store.upsertMany('transactions', transactions);
   // Written last: its presence marks the first start as done.
   store.upsert('settings', { currency: 'TRY' });

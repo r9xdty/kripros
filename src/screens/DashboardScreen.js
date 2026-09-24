@@ -6,7 +6,7 @@ import Icon from '../components/Icon';
 import TransactionRow from '../components/TransactionRow';
 import GroupedBarChart from '../components/charts/GroupedBarChart';
 import DonutChart from '../components/charts/DonutChart';
-import { Banner, Button, Card, Chip, EmptyState, ProgressBar, SectionHeader, Segmented } from '../components/ui';
+import { Banner, Button, Card, Chip, EmptyState, IconCircle, ProgressBar, SectionHeader, Segmented } from '../components/ui';
 import { useData } from '../state/DataContext';
 import { useSheets } from '../navigation/sheets';
 import { useToast } from '../components/Toast';
@@ -21,15 +21,36 @@ import {
   savingBreakdown,
   savingStreak,
   savingsRate,
+  spendingComparison,
 } from '../domain/stats';
+import { budgetStatus } from '../domain/budgets';
+import { upcoming } from '../domain/recurring';
 import { recommendTemplates } from '../domain/recommendations';
-import { formatMonth, fromDateKey, todayKey } from '../lib/dates';
+import { formatMonth, formatRelativeDay, fromDateKey, todayKey } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { colors, font, radius, spacing } from '../theme';
 
 const firstName = (name) => (name || '').split(/\s+/)[0];
 
-function HeroCard({ totals, rate, streak, currency }) {
+const BUDGET_COLORS = { ok: colors.primary, warn: colors.warning, over: colors.danger };
+
+// "Harcama geçen ayın aynı dönemine göre %12 az"
+const comparisonText = (change) => {
+  const percent = Math.round(Math.abs(change) * 100);
+  if (percent === 0) return 'Harcama geçen ayın aynı dönemiyle neredeyse aynı';
+  return `Harcama geçen ayın aynı dönemine göre %${percent} ${change < 0 ? 'az' : 'fazla'}`;
+};
+
+function HeroPill({ icon, text }) {
+  return (
+    <View style={styles.heroPill}>
+      <Icon name={icon} size={14} color="#fff" />
+      <Text style={styles.heroPillText}>{text}</Text>
+    </View>
+  );
+}
+
+function HeroCard({ totals, rate, streak, comparison, currency }) {
   return (
     <View style={styles.hero}>
       <Text style={styles.heroLabel}>Bu ay kalan (gelir − harcama)</Text>
@@ -49,20 +70,13 @@ function HeroCard({ totals, rate, streak, currency }) {
           </View>
         ))}
       </View>
-      {rate !== null || streak > 1 ? (
+      {rate !== null || streak > 1 || comparison.change !== null ? (
         <View style={styles.heroFooter}>
-          {rate !== null ? (
-            <View style={styles.heroPill}>
-              <Icon name="pie-chart" size={14} color="#fff" />
-              <Text style={styles.heroPillText}>Birikim oranı %{Math.round(rate * 100)}</Text>
-            </View>
+          {comparison.change !== null ? (
+            <HeroPill icon={comparison.change > 0 ? 'trending-up' : 'trending-down'} text={comparisonText(comparison.change)} />
           ) : null}
-          {streak > 1 ? (
-            <View style={styles.heroPill}>
-              <Icon name="flame" size={14} color="#fff" />
-              <Text style={styles.heroPillText}>{streak} gündür birikim yapıyorsun</Text>
-            </View>
-          ) : null}
+          {rate !== null ? <HeroPill icon="pie-chart" text={`Birikim oranı %${Math.round(rate * 100)}`} /> : null}
+          {streak > 1 ? <HeroPill icon="flame" text={`${streak} gündür birikim yapıyorsun`} /> : null}
         </View>
       ) : null}
     </View>
@@ -84,6 +98,9 @@ export default function DashboardScreen({ onNavigate }) {
 
   const totals = useMemo(() => monthTotals(data.transactions, year, month), [data.transactions, year, month]);
   const streak = useMemo(() => savingStreak(data.transactions, fromDateKey(today)), [data.transactions, today]);
+  const comparison = useMemo(() => spendingComparison(data.transactions, fromDateKey(today)), [data.transactions, today]);
+  const budgets = useMemo(() => budgetStatus(data.categories, data.transactions, year, month), [data.categories, data.transactions, year, month]);
+  const nextRecurring = useMemo(() => upcoming(data.recurring, today, 30).slice(0, 4), [data.recurring, today]);
   const series = useMemo(() => buildSeries(data.transactions, range), [data.transactions, range]);
   const bucketIndex = selectedBucket ?? series.length - 1;
   const bucket = series[bucketIndex];
@@ -142,7 +159,7 @@ export default function DashboardScreen({ onNavigate }) {
         </View>
       ) : null}
 
-      <HeroCard totals={totals} rate={savingsRate(totals)} streak={streak} currency={data.currency} />
+      <HeroCard totals={totals} rate={savingsRate(totals)} streak={streak} comparison={comparison} currency={data.currency} />
 
       <View style={[styles.quickRow, styles.section]}>
         {KIND_ORDER.map((kind) => (
@@ -211,6 +228,45 @@ export default function DashboardScreen({ onNavigate }) {
         ) : null}
       </Card>
 
+      {budgets.length ? (
+        <Card style={styles.section}>
+          <SectionHeader title="Bütçeler" actionLabel="Düzenle" onAction={() => push('categories', { kind: 'spending' })} />
+          {budgets.map((item) => (
+            <View key={item.category.id} style={styles.budgetRow}>
+              <View style={styles.budgetTop}>
+                <Icon name={item.category.icon} size={18} color={item.category.color} />
+                <Text style={styles.budgetName} numberOfLines={1}>
+                  {item.category.name}
+                </Text>
+                <Text style={styles.budgetAmounts}>
+                  {formatMoney(item.spent, data.currency, { whole: true })}
+                  <Text style={font.small}> / {formatMoney(item.budget, data.currency, { whole: true })}</Text>
+                </Text>
+              </View>
+              <ProgressBar ratio={item.ratio} color={BUDGET_COLORS[item.state]} height={8} />
+              <Text style={[font.small, styles.budgetNote, item.state === 'over' && { color: colors.danger, fontWeight: '600' }]}>
+                {item.state === 'over'
+                  ? `${formatMoney(item.spent - item.budget, data.currency, { whole: true })} aşıldı`
+                  : `${formatMoney(item.remaining, data.currency, { whole: true })} kaldı · %${Math.round(item.ratio * 100)}`}
+              </Text>
+            </View>
+          ))}
+        </Card>
+      ) : !isEmpty ? (
+        <Card style={styles.section}>
+          <SectionHeader title="Bütçeler" />
+          <Text style={font.small}>Market, yeme-içme gibi kategorilere aylık sınır koy; %80’e ve sınıra gelince haber verelim.</Text>
+          <Button
+            title="Bütçe belirle"
+            icon="speedometer"
+            compact
+            variant="secondary"
+            style={{ marginTop: spacing.md, alignSelf: 'flex-start' }}
+            onPress={() => push('categories', { kind: 'spending' })}
+          />
+        </Card>
+      ) : null}
+
       <Card style={styles.section}>
         <SectionHeader title="Bu ayın dağılımı" />
         <Segmented
@@ -225,6 +281,31 @@ export default function DashboardScreen({ onNavigate }) {
           <EmptyState icon="pie-chart" title={`Bu ay ${KINDS[breakdownKind].label.toLocaleLowerCase('tr')} kaydı yok`} />
         )}
       </Card>
+
+      {nextRecurring.length ? (
+        <Card style={styles.section}>
+          <SectionHeader title="Yaklaşan düzenli işlemler" actionLabel="Düzenle" onAction={() => push('recurring')} />
+          {nextRecurring.map((rule) => {
+            const category = rule.category_id ? data.categoriesById[rule.category_id] : null;
+            const kind = KINDS[rule.kind];
+            return (
+              <View key={rule.id} style={styles.upcomingRow}>
+                <IconCircle icon={category?.icon || 'repeat'} color={category?.color || kind.color} size={36} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.upcomingTitle} numberOfLines={1}>
+                    {rule.title}
+                  </Text>
+                  <Text style={font.small}>{formatRelativeDay(rule.next_on)}</Text>
+                </View>
+                <Text style={[styles.upcomingAmount, { color: kind.color }]}>
+                  {kind.sign}
+                  {formatMoney(rule.amount, data.currency, { whole: true })}
+                </Text>
+              </View>
+            );
+          })}
+        </Card>
+      ) : null}
 
       <Card style={styles.section}>
         <SectionHeader title="Hedefler" actionLabel={data.goals.length ? 'Tümü' : null} onAction={() => onNavigate('goals')} />
@@ -298,8 +379,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingHorizontal: 10,
     paddingVertical: 5,
+    maxWidth: '100%',
   },
-  heroPillText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  heroPillText: { color: '#fff', fontSize: 12, fontWeight: '600', flexShrink: 1 },
   quickRow: { flexDirection: 'row', gap: spacing.sm },
   quick: { flex: 1, borderRadius: radius.lg, paddingVertical: spacing.md, alignItems: 'center', gap: 4 },
   quickText: { fontSize: 14, fontWeight: '700' },
@@ -308,6 +390,14 @@ const styles = StyleSheet.create({
   bucketItem: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
   legendDot: { width: 10, height: 10, borderRadius: 5, marginTop: 4 },
   bucketValue: { fontSize: 15, fontWeight: '700', color: colors.text },
+  budgetRow: { paddingVertical: spacing.sm },
+  budgetTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 6 },
+  budgetName: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },
+  budgetAmounts: { fontSize: 14, fontWeight: '700', color: colors.text },
+  budgetNote: { marginTop: 4 },
+  upcomingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+  upcomingTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
+  upcomingAmount: { fontSize: 15, fontWeight: '700' },
   goalRow: { paddingVertical: spacing.sm },
   goalTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 6 },
   goalName: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },

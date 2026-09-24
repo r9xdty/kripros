@@ -203,6 +203,23 @@ export const goalProgress = (goal, transactions, now = new Date()) => {
   return result;
 };
 
+// Spending so far this month against the same days of last month, so the
+// comparison is fair early in the month. `change` is null without history.
+export const spendingComparison = (transactions, now = new Date()) => {
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const day = now.getDate();
+  const previousStart = new Date(year, month - 1, 1);
+  const previousDay = Math.min(day, daysInMonth(previousStart.getFullYear(), previousStart.getMonth()));
+  const current = totalsInRange(transactions, toDateKey(new Date(year, month, 1)), toDateKey(new Date(year, month, day))).spending;
+  const previous = totalsInRange(
+    transactions,
+    toDateKey(previousStart),
+    toDateKey(new Date(previousStart.getFullYear(), previousStart.getMonth(), previousDay)),
+  ).spending;
+  return { current, previous, change: previous > 0 ? (current - previous) / previous : null };
+};
+
 // Consecutive days, ending today (or yesterday), with at least one saving.
 export const savingStreak = (transactions, now = new Date()) => {
   const days = new Set();

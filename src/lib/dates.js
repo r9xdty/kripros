@@ -63,11 +63,12 @@ export const formatDayShort = (key) => {
 
 export const formatMonth = (year, month) => `${MONTH_NAMES[month]} ${year}`;
 
-// "Bugün", "Dün" or "12 Eylül 2026"
+// "Bugün", "Dün", "Yarın" or "12 Eylül 2026"
 export const formatRelativeDay = (key, now = new Date()) => {
   const today = toDateKey(now);
   if (key === today) return 'Bugün';
   if (key === addDaysToKey(today, -1)) return 'Dün';
+  if (key === addDaysToKey(today, 1)) return 'Yarın';
   const d = fromDateKey(key);
   const sameYear = d.getFullYear() === now.getFullYear();
   return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}${sameYear ? '' : ` ${d.getFullYear()}`}`;
