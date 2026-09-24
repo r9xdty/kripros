@@ -76,7 +76,7 @@ export default function TransactionSheet({ transaction, kind: initialKind, date,
   const remove = async () => {
     const ok = await confirm({
       title: 'Kaydı sil',
-      message: 'Bu kayıt tüm cihazlarından silinecek.',
+      message: 'Bu kayıt kalıcı olarak silinecek.',
       confirmText: 'Sil',
       destructive: true,
     });
@@ -214,10 +214,13 @@ const styles = StyleSheet.create({
   },
   amountInput: {
     flex: 1,
+    minWidth: 0,
     fontSize: 40,
     fontWeight: '800',
     textAlign: 'center',
     paddingVertical: spacing.md,
+    // The coloured border already shows focus; hide the browser's outline.
+    outlineStyle: 'none',
   },
   currency: { fontSize: 28, fontWeight: '700' },
   error: { color: colors.danger, marginTop: spacing.sm, fontSize: 14, textAlign: 'center' },

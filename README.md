@@ -1,133 +1,86 @@
+<div align="center">
+
+<img src="assets/icon.png" width="96" alt="Kripros icon">
+
 # Kripros
 
-Birikimlerini, harcamalarını ve gelirini tek yerde takip eden mobil uygulama (Expo / React Native).
+A personal finance tracker for savings, spending and income, built with Expo and React Native.<br>
+It runs fully on the device: no account, no server, no internet needed.
 
-- **Google ile giriş**: hesap sistemi Supabase Auth üzerinde, yalnızca Google (Apple ileride).
-- **Gelir · Harcama · Birikim** kayıtları, kategoriler ve "Kahve almadım · 85 ₺ · günlük" gibi birikim alışkanlıkları.
-- **Grafikler**: son 7 gün / 5 hafta / 12 ay karşılaştırması, kategori dağılımı (halka grafik), takvim görünümü.
-- **Hedefler**: "Yaz tatili 40.000 ₺" gibi hedefler, ilerleme ve "ayda ne kadar biriktirmeliyim" hesabı.
-- **Çevrimdışı çalışır**: tüm veriler cihazda tutulur, internet gelince otomatik eşitlenir. Birden fazla cihazda aynı hesap kullanılabilir.
-- **Eski veriler**: uygulamanın önceki (yalnızca cihazda saklayan) sürümündeki birikimler tek dokunuşla hesaba aktarılır.
+**[Live demo](https://r9xdty.github.io/project_kripros/)** · [Türkçe](README.tr.md)
 
----
+[![CI](https://github.com/r9xdty/project_kripros/actions/workflows/ci.yml/badge.svg)](https://github.com/r9xdty/project_kripros/actions/workflows/ci.yml)
+![Expo SDK 53](https://img.shields.io/badge/Expo-SDK%2053-000020?logo=expo)
+![React Native 0.79](https://img.shields.io/badge/React%20Native-0.79-61dafb?logo=react)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## Kurulum (yaklaşık 15 dakika)
+</div>
 
-### 1. Bağımlılıklar
+| Overview | Charts | Calendar |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/dashboard.png" width="240" alt="Overview screen"> | <img src="docs/screenshots/charts.png" width="240" alt="Bar and donut charts"> | <img src="docs/screenshots/calendar.png" width="240" alt="Calendar screen"> |
+| **Goals** | **History** | **New record** |
+| <img src="docs/screenshots/goals.png" width="240" alt="Goals screen"> | <img src="docs/screenshots/history.png" width="240" alt="History screen"> | <img src="docs/screenshots/new-record.png" width="240" alt="New record form"> |
+
+> The interface is in Turkish. In the live demo, choose **“Örnek verilerle keşfet”** to start with a few months of sample data.
+
+## Features
+
+- **Income, spending and savings** with editable categories.
+- **Saving habits**: recurring savings such as “skipped coffee · ₺85 · daily”. Habits that are due are suggested on the overview and in the calendar, and can be added with one tap.
+- **Charts**: a grouped bar chart comparing income, spending and savings over the last 7 days, 5 weeks or 12 months, and a donut chart of the month by category. Both are drawn directly with SVG, without a chart library.
+- **Calendar**: daily totals at a glance; tap a day to see or add its records.
+- **Goals**: targets like “summer holiday ₺40,000”, with progress, the amount left and the monthly amount needed to reach it on time.
+- **History**: records grouped by day, searchable and filterable by type.
+- **Turkish number input**: `45,50`, `1.250` and `1.250,75` are all read correctly. Totals are computed in kuruş (cents), so there are no floating-point errors.
+
+## Getting started
 
 ```bash
 npm install
+npx expo start          # scan the QR code with Expo Go
+npx expo start --web    # or open it in the browser
 ```
 
-### 2. Supabase projesi
+## Scripts
 
-1. [supabase.com](https://supabase.com) → **New project** (ücretsiz plan yeterli).
-2. **SQL Editor → New query** → [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) dosyasının tamamını yapıştır → **Run**.
-3. **Project Settings → API** sayfasından **Project URL** ve **anon / publishable key** değerlerini al.
-
-### 3. Google ile giriş
-
-1. [Google Cloud Console](https://console.cloud.google.com/) → yeni proje → **APIs & Services → OAuth consent screen** (External, uygulama adı: Kripros).
-2. **Credentials → Create credentials → OAuth client ID → Web application**.
-   - **Authorized redirect URIs**: `https://<PROJE-REF>.supabase.co/auth/v1/callback`
-3. Oluşan **Client ID** ve **Client secret**'ı Supabase'de **Authentication → Sign In / Providers → Google** bölümüne yapıştır ve etkinleştir.
-4. Aynı sayfada **Email** sağlayıcısını **kapat** (yalnızca Google ile giriş kabul ediliyor).
-5. **Authentication → URL Configuration → Redirect URLs** listesine ekle:
-   - `kripros://**` (uygulamanın kendi derlemesi)
-   - `exp://**` (Expo Go ile geliştirme)
-   - `http://localhost:8081/**` (tarayıcıda geliştirme)
-
-### 4. Ortam değişkenleri
-
-```bash
-cp .env.example .env
-# .env içine Project URL ve anon key'i yaz
-```
-
-### 5. Çalıştır
-
-```bash
-npx expo start          # telefonda Expo Go ile QR kodu okut
-npx expo start --web    # tarayıcıda
-```
-
-> `.env` değiştiğinde önbelleği temizleyerek başlat: `npx expo start -c`
-
-### Supabase olmadan denemek (yalnızca geliştirme)
-
-```bash
-EXPO_PUBLIC_DEMO_MODE=1 npx expo start
-```
-
-Giriş ekranını atlar ve örnek verilerle tamamen cihaz üzerinde çalışır. Yayın derlemelerinde bu ayar yok sayılır.
-
----
-
-## Nasıl çalışıyor?
-
-```
-Ekranlar ──► DataContext ──► SyncEngine ──► AsyncStorage (cihazdaki kopya)
-                                  │
-                                  └──(internet varken)──► Supabase (Postgres + RLS)
-```
-
-- **Önce cihaz**: her değişiklik anında cihaza yazılır ve bir "gönderilecekler" kuyruğuna girer. Bağlantı geldiğinde, uygulama öne alındığında ve açıkken 2 dakikada bir eşitleme yapılır.
-- **Çakışmalar**: aynı kayıt iki cihazda değiştirildiyse **en son yapılan değişiklik** kazanır. Kural sunucuda uygulanır; eski bir düzenleme yeni olanın üzerine yazamaz.
-- **Silme**: kayıtlar önce "silindi" olarak işaretlenir ki diğer cihazlar da öğrensin.
-- **Güvenlik**: her tabloda satır seviyesinde güvenlik (RLS) açık; kullanıcı yalnızca kendi satırlarını görebilir ve yazabilir. Başka bir kullanıcının kategorisine/hedefine bağlanmak veritabanı düzeyinde engellenir.
-- **Hesap silme**: Profil → "Hesabımı sil" tüm verileri sunucudan ve cihazdan kalıcı olarak siler (mağaza politikaları bunu zorunlu tutuyor).
-
-### Veritabanı
-
-| Tablo | İçerik |
+| Command | What it does |
 |---|---|
-| `profiles` | Görünen ad, para birimi (kayıt olunca otomatik oluşur) |
-| `categories` | Gelir/harcama kategorileri (varsayılanlar kayıtta otomatik eklenir) |
-| `saving_templates` | Birikim alışkanlıkları |
-| `goals` | Birikim hedefleri |
-| `transactions` | Tüm kayıtlar: `income` / `spending` / `saving` |
-| `subscriptions` | Üyelik durumu, **yalnızca sunucu yazabilir** (ödeme entegrasyonu için hazır) |
+| `npm test` | Jest unit tests |
+| `npm run lint` | ESLint (Expo config) |
+| `npm run check:bundle` | Checks that the Android JS bundle builds |
 
----
+Every push and pull request runs lint, tests and a web build on GitHub Actions. Pushes to `main` also deploy the web build to GitHub Pages.
 
-## Testler ve kontroller
+## How it works
 
-```bash
-npm test            # birim testleri: eşitleme motoru, hesaplamalar, tutar/tarih işlemleri
-npm run lint        # ESLint
-npm run test:db     # veritabanı güvenlik testleri (yerel PostgreSQL gerekir)
-npm run check:bundle  # Android JS paketinin derlendiğini doğrular
-```
+- **Expo SDK 53, React Native 0.79 (New Architecture), React 19**: one codebase for Android, iOS and the web.
+- **Local store** (`src/store`): records are kept in memory for the UI and saved to AsyncStorage.
+  - Changes made at the same time are written in a single call.
+  - Large tables are split into 16 buckets, so no value hits Android's ~2 MB per-item limit and only the changed bucket is rewritten.
+- **Domain logic** (`src/domain`): statistics, the habit suggestions and goal progress are plain functions, independent of the UI and covered by unit tests.
+- **Dates** are stored as local calendar days (`YYYY-MM-DD`), so a record never moves to another day because of time zones.
+- **Sheets**: forms and details open as a stack inside a single `Modal`. Nesting several React Native modals is unreliable on iOS; this way the form under the top sheet also keeps its state.
 
-`test:db`, geçici bir veritabanı oluşturur, Supabase'in gerekli kısımlarını taklit eden küçük bir katman kurar, migration'ı çalıştırır ve RLS kurallarını, çakışma çözümünü ve hesap silmeyi test eder.
-
----
-
-## Sonraki adımlar
-
-- **Ödemeler (premium)**: Android'de dijital içerik/abonelik satışı için Google Play politikası **Google Play Billing**'i zorunlu tutar (Google Pay doğrudan kullanılamaz; kullanıcı Play Billing ekranında Google Pay ile ödeyebilir). iOS'ta karşılığı App Store In-App Purchase. Önerilen yol: `react-native-iap` ya da RevenueCat + satın alımı doğrulayıp `subscriptions` tablosuna yazan bir Supabase Edge Function. Uygulama `subscriptions` tablosunu zaten okuyor (Profil'de plan görünür).
-- **Apple ile giriş**: `expo-apple-authentication` + `supabase.auth.signInWithIdToken`. App Store, Google ile giriş sunan uygulamalarda Apple ile girişi de şart koşar; iOS yayınından önce eklenmeli.
-- **Yayın öncesi**: Android paket adı hâlâ `com.anonymous.project_kripros`; Play Store'a çıkmadan önce kalıcı bir adla değiştirilmeli (`app.json` ve `android/`). Derleme için EAS Build önerilir.
-- Supabase ücretsiz planında proje 1 hafta kullanılmazsa duraklatılır; panelden tek tıkla yeniden başlatılır.
-
----
-
-## Proje yapısı
+## Project structure
 
 ```
-App.js                     giriş noktası: oturum → veri → ekranlar
+App.js              entry point: data provider → welcome screen or main app
+app.json            Expo configuration
+app.config.js       adds the GitHub Pages base path to web builds in CI
 src/
-  config.js                .env değerleri
-  theme.js                 renkler, boşluklar
-  lib/                     supabase istemcisi, tutar/tarih yardımcıları, diyaloglar
-  sync/                    çevrimdışı eşitleme motoru, cihaz depolaması, Supabase bağdaştırıcısı
-  domain/                  istatistikler, öneriler, eski veri aktarımı, demo verisi
-  state/                   AuthContext (Google girişi), DataContext (veriler + işlemler)
-  navigation/              sekmeler ve tam ekran pencereler
-  screens/                 Özet, Takvim, Hedefler, Geçmiş, Giriş
-  sheets/                  Kayıt ekle/düzenle, Gün detayı, Hedef, Profil, Kategoriler, Alışkanlıklar
-  components/              ortak arayüz parçaları ve grafikler
-supabase/
-  migrations/0001_init.sql veritabanı şeması, RLS, tetikleyiciler
-  tests/                   veritabanı güvenlik testleri
+  store/            on-device store (AsyncStorage)
+  state/            DataContext: data and actions for the screens
+  domain/           statistics, suggestions, validation, default and sample data
+  lib/              money and date helpers, dialogs, ids
+  navigation/       tab bar and sheet stack
+  screens/          Overview, Calendar, Goals, History, Welcome
+  sheets/           record, day, goal, settings, categories and habits
+  components/       shared UI parts and the SVG charts
+docs/screenshots/   images used in this README
+.github/workflows/  CI and GitHub Pages deployment
 ```
+
+## License
+
+[MIT](LICENSE)

@@ -1,6 +1,6 @@
-// The first version of the app stored everything on the device only
-// (AsyncStorage keys below). After signing in, the user can move that data
-// into their account once.
+// The first version of the app stored its data under the AsyncStorage keys
+// below, in a different shape. It can be imported into the current format
+// once.
 import { parseAmount } from '../lib/money';
 import { toDateKey } from '../lib/dates';
 

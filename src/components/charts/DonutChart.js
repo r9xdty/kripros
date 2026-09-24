@@ -8,7 +8,7 @@ import { colors, spacing } from '../../theme';
 
 const MAX_SLICES = 6;
 
-export const groupSlices = (slices) => {
+const groupSlices = (slices) => {
   if (slices.length <= MAX_SLICES) return slices;
   const head = slices.slice(0, MAX_SLICES - 1);
   const rest = slices.slice(MAX_SLICES - 1);

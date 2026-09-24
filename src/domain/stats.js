@@ -46,8 +46,6 @@ export const monthRange = (year, month) => {
 
 export const monthTotals = (transactions, year, month) => totalsInRange(transactions, ...monthRange(year, month));
 
-export const allTimeTotals = (transactions) => totalsInRange(transactions);
-
 // Share of income that was put aside, or null when there was no income.
 export const savingsRate = (totals) => (totals.income > 0 ? totals.saving / totals.income : null);
 
