@@ -1,5 +1,5 @@
 import { buildLegacyImport, markLegacyHandled, readLegacyData } from '../legacyImport';
-import { createMemoryStorage } from '../../sync/persistence';
+import { createMemoryStorage } from '../../store/persistence';
 
 const legacySavings = [
   { id: 1727000000000, name: 'Kahve almadım', amount: 45, frequency: 'daily', createdAt: '2025-09-20T08:00:00.000Z' },

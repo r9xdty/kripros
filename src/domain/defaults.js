@@ -1,6 +1,5 @@
-// Sample data for the development-only demo mode (EXPO_PUBLIC_DEMO_MODE=1).
-// Real accounts get their default categories from the database trigger in
-// supabase/migrations/0001_init.sql.
+// What the app starts with: default categories, and optionally a few
+// months of sample records to explore the charts.
 import { addDays, toDateKey } from '../lib/dates';
 
 export const DEFAULT_CATEGORIES = [
@@ -23,20 +22,28 @@ export const DEFAULT_CATEGORIES = [
   ['income', 'Diğer', 'ellipsis-horizontal', '#6b7280'],
 ];
 
-export const seedDemoData = (engine, now = new Date()) => {
-  engine.upsert('profiles', { display_name: 'Demo Kullanıcı', currency: 'TRY' });
+// Returns the new category ids keyed by "kind:name".
+const addDefaultCategories = (store) => {
+  const rows = store.upsertMany(
+    'categories',
+    DEFAULT_CATEGORIES.map(([kind, name, icon, color], index) => ({ kind, name, icon, color, sort_order: index + 1 })),
+  );
+  return Object.fromEntries(rows.map((row) => [`${row.kind}:${row.name}`, row.id]));
+};
 
-  const categories = {};
-  DEFAULT_CATEGORIES.forEach(([kind, name, icon, color], index) => {
-    const row = engine.upsert('categories', { kind, name, icon, color, sort_order: index + 1, is_default: true });
-    categories[`${kind}:${name}`] = row.id;
-  });
+export const seedDefaults = (store) => {
+  addDefaultCategories(store);
+  store.upsert('settings', { currency: 'TRY' });
+};
 
-  const coffee = engine.upsert('saving_templates', { name: 'Kahve almadım', amount: 85, frequency: 'daily' });
-  const metro = engine.upsert('saving_templates', { name: 'Taksi yerine metro', amount: 220, frequency: 'weekly' });
-  const lunch = engine.upsert('saving_templates', { name: 'Evden yemek getirdim', amount: 180, frequency: 'daily' });
+export const seedSampleData = (store, now = new Date()) => {
+  const categories = addDefaultCategories(store);
 
-  const trip = engine.upsert('goals', {
+  const coffee = store.upsert('saving_templates', { name: 'Kahve almadım', amount: 85, frequency: 'daily' });
+  const metro = store.upsert('saving_templates', { name: 'Taksi yerine metro', amount: 220, frequency: 'weekly' });
+  const lunch = store.upsert('saving_templates', { name: 'Evden yemek getirdim', amount: 180, frequency: 'daily' });
+
+  const trip = store.upsert('goals', {
     name: 'Yaz tatili',
     target_amount: 40000,
     initial_amount: 5000,
@@ -44,12 +51,12 @@ export const seedDemoData = (engine, now = new Date()) => {
     icon: 'airplane',
     color: '#0ea5e9',
   });
-  const laptop = engine.upsert('goals', { name: 'Yeni bilgisayar', target_amount: 55000, icon: 'laptop', color: '#8b5cf6' });
+  const laptop = store.upsert('goals', { name: 'Yeni bilgisayar', target_amount: 55000, icon: 'laptop', color: '#8b5cf6' });
 
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const day = (offset) => toDateKey(addDays(today, -offset));
-  const add = (kind, amount, offset, extra) =>
-    engine.upsert('transactions', { kind, amount, occurred_on: day(offset), ...extra });
+  const transactions = [];
+  const add = (kind, amount, offset, extra) => transactions.push({ kind, amount, occurred_on: day(offset), ...extra });
 
   for (let month = 0; month < 6; month++) {
     const base = month * 30;
@@ -74,4 +81,7 @@ export const seedDemoData = (engine, now = new Date()) => {
   add('spending', 2400, 26, { title: 'Mont', category_id: categories['spending:Giyim'] });
   add('spending', 950, 33, { title: 'Diş hekimi', category_id: categories['spending:Sağlık'] });
   add('spending', 600, 4, { title: 'Konser bileti', category_id: categories['spending:Eğlence'] });
+  store.upsertMany('transactions', transactions);
+  // Written last: its presence marks the first start as done.
+  store.upsert('settings', { currency: 'TRY' });
 };

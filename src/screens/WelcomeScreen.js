@@ -1,19 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Icon from '../components/Icon';
-import { useAuth } from '../state/AuthContext';
+import { useData } from '../state/DataContext';
 import { colors, radius, spacing } from '../theme';
 
 const FEATURES = [
   ['pie-chart', 'Gelir, harcama ve birikimlerini grafiklerle gör'],
   ['flag', 'Hedef koy, ne kadar yaklaştığını izle'],
-  ['cloud-done', 'İnternet olmadan da çalışır, bağlanınca eşitlenir'],
+  ['phone-portrait', 'Veriler yalnızca bu cihazda, internet gerekmez'],
 ];
 
-export default function LoginScreen() {
-  const { signInWithGoogle, signingIn, error } = useAuth();
+export default function WelcomeScreen() {
+  const data = useData();
+  const [busy, setBusy] = useState(null);
+
+  const start = (withSamples) => {
+    setBusy(withSamples ? 'sample' : 'empty');
+    // Let the spinner render before the (synchronous) seeding runs.
+    setTimeout(() => (withSamples ? data.startWithSampleData() : data.startEmpty()), 0);
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -38,31 +45,30 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.bottom}>
-        {error ? (
-          <View style={styles.error}>
-            <Icon name="alert-circle" size={18} color={colors.danger} />
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
         <Pressable
-          onPress={signInWithGoogle}
-          disabled={signingIn}
-          style={({ pressed }) => [styles.google, pressed && { opacity: 0.8 }]}
+          onPress={() => start(true)}
+          disabled={Boolean(busy)}
+          style={({ pressed }) => [styles.primary, pressed && { opacity: 0.85 }]}
           accessibilityRole="button"
-          accessibilityLabel="Google ile devam et"
         >
-          {signingIn ? (
-            <ActivityIndicator color={colors.text} />
+          {busy === 'sample' ? (
+            <ActivityIndicator color={colors.primaryDark} />
           ) : (
             <>
-              <Icon name="logo-google" size={20} color="#ea4335" />
-              <Text style={styles.googleText}>Google ile devam et</Text>
+              <Icon name="sparkles" size={20} color={colors.primaryDark} />
+              <Text style={styles.primaryText}>Örnek verilerle keşfet</Text>
             </>
           )}
         </Pressable>
-        <Text style={styles.fine}>
-          Giriş yaparak verilerin hesabına bağlı olarak saklanır; yalnızca sen görebilirsin. Apple ile giriş yakında.
-        </Text>
+        <Pressable
+          onPress={() => start(false)}
+          disabled={Boolean(busy)}
+          style={({ pressed }) => [styles.secondary, pressed && { opacity: 0.7 }]}
+          accessibilityRole="button"
+        >
+          {busy === 'empty' ? <ActivityIndicator color="#fff" /> : <Text style={styles.secondaryText}>Boş başla</Text>}
+        </Pressable>
+        <Text style={styles.fine}>Örnek verileri istediğin zaman Ayarlar → “Tüm verileri sil” ile temizleyebilirsin.</Text>
       </View>
     </SafeAreaView>
   );
@@ -99,8 +105,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   featureText: { color: '#fff', fontSize: 15, flex: 1, lineHeight: 20 },
-  bottom: { marginTop: 'auto', paddingBottom: spacing.xl },
-  google: {
+  bottom: { marginTop: 'auto', paddingBottom: spacing.xl, gap: spacing.sm },
+  primary: {
     minHeight: 54,
     borderRadius: radius.md,
     backgroundColor: '#fff',
@@ -109,16 +115,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.md,
   },
-  googleText: { fontSize: 17, fontWeight: '700', color: colors.text },
-  fine: { color: '#a7f3d0', fontSize: 12, textAlign: 'center', marginTop: spacing.md, lineHeight: 18 },
-  error: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    alignItems: 'center',
-    backgroundColor: '#fef2f2',
+  primaryText: { fontSize: 17, fontWeight: '700', color: colors.primaryDark },
+  secondary: {
+    minHeight: 50,
     borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  errorText: { color: colors.danger, flex: 1, fontSize: 14 },
+  secondaryText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  fine: { color: '#a7f3d0', fontSize: 12, textAlign: 'center', marginTop: spacing.sm, lineHeight: 18 },
 });

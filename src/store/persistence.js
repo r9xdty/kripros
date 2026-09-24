@@ -1,11 +1,8 @@
-// Device-side storage for the offline copy of a user's data.
-//
-// Everything lives under a per-user prefix so two accounts on the same
-// device never see each other's data. Large tables are split into buckets
-// by id; only buckets that changed are rewritten.
+// Device storage for the app's data. Large tables are split into buckets by
+// id; only buckets that changed are rewritten.
 import { TABLES, TABLE_NAMES } from './schema';
 
-const VERSION = 'v1';
+const PREFIX = 'kripros:v2';
 
 const hashId = (id) => {
   let hash = 0;
@@ -17,54 +14,44 @@ const hashId = (id) => {
 
 export const bucketOf = (table, id) => hashId(String(id)) % TABLES[table].buckets;
 
-export const createPersistence = (storage, userId) => {
-  const prefix = `kripros:${VERSION}:${userId}`;
-  const tableKey = (table, bucket) => `${prefix}:table:${table}:${bucket}`;
-  const outboxKey = `${prefix}:outbox`;
-  const metaKey = `${prefix}:meta`;
+export const createPersistence = (storage) => {
+  const tableKey = (table, bucket) => `${PREFIX}:table:${table}:${bucket}`;
 
   const allKeys = () => {
-    const keys = [outboxKey, metaKey];
+    const keys = [];
     for (const table of TABLE_NAMES) {
       for (let b = 0; b < TABLES[table].buckets; b++) keys.push(tableKey(table, b));
     }
     return keys;
   };
 
-  const parse = (value, fallback) => {
-    if (value == null) return fallback;
+  const parse = (value) => {
+    if (value == null) return {};
     try {
       return JSON.parse(value);
     } catch {
-      return fallback;
+      return {};
     }
   };
 
   return {
     async load() {
-      const entries = await storage.multiGet(allKeys());
-      const values = Object.fromEntries(entries);
+      const values = Object.fromEntries(await storage.multiGet(allKeys()));
       const tables = {};
       for (const table of TABLE_NAMES) {
         tables[table] = {};
         for (let b = 0; b < TABLES[table].buckets; b++) {
-          Object.assign(tables[table], parse(values[tableKey(table, b)], {}));
+          Object.assign(tables[table], parse(values[tableKey(table, b)]));
         }
       }
-      return {
-        tables,
-        outbox: parse(values[outboxKey], {}),
-        meta: parse(values[metaKey], {}),
-      };
+      return tables;
     },
 
     // Storage entries for the buckets that contain one of `changedIds`
     // (or for the whole table when `changedIds` is omitted).
     tableEntries(table, rows, changedIds) {
       const count = TABLES[table].buckets;
-      const dirty = new Set(
-        changedIds ? changedIds.map((id) => bucketOf(table, id)) : [...Array(count).keys()],
-      );
+      const dirty = new Set(changedIds ? changedIds.map((id) => bucketOf(table, id)) : [...Array(count).keys()]);
       const buckets = new Map([...dirty].map((b) => [b, {}]));
       for (const [id, row] of Object.entries(rows)) {
         const b = bucketOf(table, id);
@@ -73,22 +60,8 @@ export const createPersistence = (storage, userId) => {
       return [...buckets].map(([b, data]) => [tableKey(table, b), JSON.stringify(data)]);
     },
 
-    outboxEntry(outbox) {
-      return [outboxKey, JSON.stringify(outbox)];
-    },
-
-    metaEntry(meta) {
-      return [metaKey, JSON.stringify(meta)];
-    },
-
-    // Writes several entries in one call, so related changes (a row and its
-    // outbox entry) reach storage together.
     write(entries) {
       return storage.multiSet(entries);
-    },
-
-    saveTable(table, rows, changedIds) {
-      return storage.multiSet(this.tableEntries(table, rows, changedIds));
     },
 
     clear() {
@@ -97,8 +70,7 @@ export const createPersistence = (storage, userId) => {
   };
 };
 
-// Simple in-memory storage with the AsyncStorage API, used by tests and by
-// the dev-only demo mode.
+// In-memory storage with the AsyncStorage API, used by the tests.
 export const createMemoryStorage = () => {
   const map = new Map();
   return {

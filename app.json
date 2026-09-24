@@ -3,7 +3,6 @@
     "name": "Kripros",
     "slug": "project_kripros",
     "version": "1.0.0",
-    "scheme": "kripros",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -26,9 +25,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-web-browser"
-    ]
+    }
   }
 }

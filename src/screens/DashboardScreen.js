@@ -2,13 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Screen, { ScreenHeader } from '../components/Screen';
 import Avatar from '../components/Avatar';
-import SyncBadge from '../components/SyncBadge';
 import Icon from '../components/Icon';
 import TransactionRow from '../components/TransactionRow';
 import GroupedBarChart from '../components/charts/GroupedBarChart';
 import DonutChart from '../components/charts/DonutChart';
 import { Banner, Button, Card, Chip, EmptyState, ProgressBar, SectionHeader, Segmented } from '../components/ui';
-import { useAuth } from '../state/AuthContext';
 import { useData } from '../state/DataContext';
 import { useSheets } from '../navigation/sheets';
 import { useToast } from '../components/Toast';
@@ -72,7 +70,6 @@ function HeroCard({ totals, rate, streak, currency }) {
 }
 
 export default function DashboardScreen({ onNavigate }) {
-  const auth = useAuth();
   const data = useData();
   const { push } = useSheets();
   const toast = useToast();
@@ -119,14 +116,15 @@ export default function DashboardScreen({ onNavigate }) {
         title={`Merhaba${data.displayName ? `, ${firstName(data.displayName)}` : ''}`}
         subtitle={formatMonth(year, month)}
         right={
-          <View style={styles.headerRight}>
-            <Pressable onPress={() => push('profile')} hitSlop={6}>
-              <SyncBadge sync={data.sync} />
-            </Pressable>
-            <Pressable onPress={() => push('profile')} accessibilityLabel="Profil" hitSlop={6}>
-              <Avatar name={data.displayName} url={auth.user.avatarUrl} size={40} />
-            </Pressable>
-          </View>
+          <Pressable onPress={() => push('settings')} accessibilityLabel="Ayarlar" hitSlop={6}>
+            {data.displayName ? (
+              <Avatar name={data.displayName} size={40} />
+            ) : (
+              <View style={styles.settingsButton}>
+                <Icon name="settings-outline" size={22} color={colors.primaryDark} />
+              </View>
+            )}
+          </Pressable>
         }
       />
 
@@ -139,7 +137,7 @@ export default function DashboardScreen({ onNavigate }) {
             title="Eski kayıtların bulundu"
             message={`Cihazında önceki sürümden ${data.legacy.entryCount} birikim kaydı var.`}
           >
-            <Button title="Profil'den aktar" compact variant="ghost" onPress={() => push('profile')} style={{ alignSelf: 'flex-start' }} />
+            <Button title="Ayarlar’dan aktar" compact variant="ghost" onPress={() => push('settings')} style={{ alignSelf: 'flex-start' }} />
           </Banner>
         </View>
       ) : null}
@@ -269,7 +267,14 @@ export default function DashboardScreen({ onNavigate }) {
 }
 
 const styles = StyleSheet.create({
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   section: { marginTop: spacing.lg },
   hero: {
     backgroundColor: colors.primaryDark,

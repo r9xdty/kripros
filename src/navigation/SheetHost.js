@@ -7,7 +7,7 @@ import DaySheet from '../sheets/DaySheet';
 import GoalSheet from '../sheets/GoalSheet';
 import TemplatesSheet from '../sheets/TemplatesSheet';
 import CategoriesSheet from '../sheets/CategoriesSheet';
-import ProfileSheet from '../sheets/ProfileSheet';
+import SettingsSheet from '../sheets/SettingsSheet';
 
 const SHEETS = {
   transaction: TransactionSheet,
@@ -15,7 +15,7 @@ const SHEETS = {
   goal: GoalSheet,
   templates: TemplatesSheet,
   categories: CategoriesSheet,
-  profile: ProfileSheet,
+  settings: SettingsSheet,
 };
 
 let nextKey = 1;

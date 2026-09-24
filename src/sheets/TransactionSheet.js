@@ -76,7 +76,7 @@ export default function TransactionSheet({ transaction, kind: initialKind, date,
   const remove = async () => {
     const ok = await confirm({
       title: 'Kaydı sil',
-      message: 'Bu kayıt tüm cihazlarından silinecek.',
+      message: 'Bu kayıt kalıcı olarak silinecek.',
       confirmText: 'Sil',
       destructive: true,
     });
